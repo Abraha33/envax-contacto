@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <title>ENVAX · Así de fácil es contactarnos</title>
 <style>
   :root{
@@ -43,8 +46,9 @@
     font-family:Poppins,'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
     background:transparent;
     display:flex;align-items:center;justify-content:center;
-    padding:16px;
+    padding:6px;
     -webkit-font-smoothing:antialiased;
+    overflow:hidden;
   }
   .stage{display:flex;flex-direction:column;align-items:center;gap:15px;width:100%;max-width:430px;}
 
@@ -1173,6 +1177,29 @@
 
     run();
   }
+
+
+  /* ----- Auto-ajuste a la ventana (móvil, tablet, escritorio, iframe) ----- */
+  const stageEl = document.querySelector(".stage");
+  function fitStage(){
+    stageEl.style.transform = "none";
+    const availW = window.innerWidth  - 12;
+    const availH = window.innerHeight - 12;
+    const w = stageEl.scrollWidth, h = stageEl.scrollHeight;
+    const s = Math.min(1, availW / w, availH / h);
+    if(s < 0.999){
+      stageEl.style.transformOrigin = "top center";
+      stageEl.style.transform = `scale(${s})`;
+      document.body.style.alignItems = "flex-start";
+      document.body.style.paddingTop = Math.max(4,(availH - h*s)/2) + "px";
+    } else {
+      document.body.style.alignItems = "center";
+      document.body.style.paddingTop = "";
+    }
+  }
+  window.addEventListener("resize", fitStage);
+  window.addEventListener("load", fitStage);
+  setTimeout(fitStage, 60); setTimeout(fitStage, 400);
 
   function start(){ run(); }
 
