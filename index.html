@@ -264,6 +264,24 @@ select.control{appearance:auto}
 .assist-actions button.copied{background:#EAF8EF;color:var(--green-deep);border-color:#C6E9D2}
 .assist-x{position:absolute;top:10px;right:10px;color:#9AA6B2;font-size:17px;line-height:1;padding:4px}
 
+.assist-login-toggle{
+  grid-column:1/-1;justify-self:start;margin-top:2px;
+  font-size:10.5px;font-weight:700;color:var(--commercial);
+  text-decoration:underline;text-underline-offset:2px;
+}
+.assist-login-steps{
+  grid-column:1/-1;list-style:none;margin:0;padding:9px 0 0;
+  display:none;flex-direction:column;gap:4px;
+  border-top:1px dashed var(--line);margin-top:6px;
+}
+.assist-login-steps.show{display:flex}
+.assist-login-steps li{
+  font-size:10.5px;color:var(--muted);line-height:1.4;padding-left:14px;position:relative;
+}
+.assist-login-steps li::before{
+  content:"";position:absolute;left:0;top:6px;width:5px;height:5px;border-radius:50%;background:var(--commercial);
+}
+
 .page-toast{
   position:fixed;left:50%;bottom:20px;transform:translate(-50%,30px);
   background:#10253A;color:#fff;font-size:11.5px;font-weight:600;
@@ -467,6 +485,12 @@ select.control{appearance:auto}
     <span id="assistSub"></span>
   </div>
   <div class="assist-actions" id="assistActions"></div>
+  <button class="assist-login-toggle" id="assistLoginToggle" type="button">¿No tienes sesión iniciada?</button>
+  <ul class="assist-login-steps" id="assistLoginSteps">
+    <li>Abre Gmail o WhatsApp e inicia sesión con tu cuenta.</li>
+    <li>Cierra y vuelve a abrir la aplicación.</li>
+    <li>Regresa aquí y pulsa de nuevo el botón.</li>
+  </ul>
   <button class="assist-x" id="assistClose" type="button" aria-label="Cerrar">×</button>
 </div>
 
@@ -620,6 +644,8 @@ select.control{appearance:auto}
     }
   }
   $('#assistClose').addEventListener('click', hideAssist);
+  const assistLoginToggle = $('#assistLoginToggle'), assistLoginSteps = $('#assistLoginSteps');
+  assistLoginToggle.addEventListener('click', () => assistLoginSteps.classList.toggle('show'));
 
   function copyToClipboard(text, btn){
     navigator.clipboard?.writeText(text).then(() => {
@@ -629,6 +655,7 @@ select.control{appearance:auto}
   }
 
   function showAssist(kind, opts = {}){
+    assistLoginSteps.classList.remove('show');
     assistIcon.className = 'assist-icon' + (kind === 'whatsapp' ? ' wa' : '');
     assistActions.innerHTML = '';
     if(kind === 'whatsapp'){
