@@ -163,6 +163,15 @@
   .channel.wa .mini{background:#EAF8EF;color:var(--green);}
   .channel.email .mini{background:#EAF4FA;color:var(--commercial);}
 
+  .catalog-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+  .catalog{
+    background:#EEF1F8;border-radius:13px;padding:10px 9px;min-height:66px;
+    display:flex;flex-direction:column;align-items:flex-start;gap:6px;color:#9AA3BA;
+  }
+  .catalog svg{color:#9AA3BA;}
+  .catalog b{font-size:11px;font-weight:600;line-height:1.25;}
+  .catalog .badge{font-size:9px;font-weight:700;border-radius:999px;padding:3px 7px;background:#DCE7FD;color:var(--blue);white-space:nowrap;}
+
   .dropdown{
     position:absolute;left:30px;right:30px;top:0;visibility:hidden;
     background:var(--card);border-radius:14px;
@@ -558,6 +567,19 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>
               </span>
               <span><strong>Correo</strong><small>Asunto y mensaje listos</small></span>
+            </div>
+          </div>
+
+          <div class="catalog-row">
+            <div class="catalog">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.5 5.2 8.6 4.5 6.5 4.5H3v13h3.5c2.1 0 4 .7 5.5 2 1.5-1.3 3.4-2 5.5-2H21v-13h-3.5c-2.1 0-4 .7-5.5 2Z"/><path d="M12 6.5v13"/></svg>
+              <b>Ver catálogo</b>
+              <span class="badge">Próximamente</span>
+            </div>
+            <div class="catalog">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 10V7a3 3 0 0 1 6 0v3"/></svg>
+              <b>Comprar en línea</b>
+              <span class="badge">Próximamente</span>
             </div>
           </div>
         </div>
