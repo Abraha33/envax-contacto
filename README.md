@@ -2,19 +2,11 @@
 
 Página de contacto de Desechables ENVAX (Bucaramanga) con demostración animada integrada.
 
-## Archivos
-- `index.html` — Página de contacto (responsive móvil/escritorio).
-- `demo.html` — Demostración animada. En escritorio se incrusta a la derecha (`?compact=1`); en móvil se abre en un modal (auto una sola vez en la primera visita).
+- `index.html` — Página de contacto. En escritorio (≥1024px) muestra la demo incrustada a la derecha; en móvil la abre en un modal (automático solo la primera visita).
+- `demo.html` — Demostración animada; se auto-escala a cualquier tamaño de pantalla o iframe. `?compact=1` reduce el teléfono para el panel de escritorio.
 
 ## Publicar con GitHub Pages
-1. Sube ambos archivos a la rama `main`.
-2. En el repositorio: **Settings → Pages → Source: Deploy from a branch → main / (root)**.
-3. La página quedará en `https://<usuario>.github.io/envax-contacto/`.
+Settings → Pages → Deploy from a branch → `main` / `(root)`.
 
-## Configuración (en `index.html`, objeto `CONFIG`)
-- `whatsapp`: número en formato internacional sin «+».
-- `email`: correo de contacto.
-- `catalogUrl`: URL del catálogo cuando esté listo (activa el botón).
-- `leadEndpoint`: endpoint opcional para registrar leads (POST JSON).
-- `firstVisitAutoOpen`: `true` abre la demo automáticamente la primera visita (solo móvil).
-- `?demo=1` en la URL fuerza la demo (útil para códigos QR).
+## Configuración (`CONFIG` en index.html)
+`whatsapp`, `email`, `catalogUrl` (activa el botón de catálogo), `leadEndpoint` (POST JSON opcional), `firstVisitAutoOpen`. `?demo=1` fuerza la demo en móvil.
