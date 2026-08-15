@@ -235,17 +235,35 @@ select.control{appearance:auto}
 .close{width:34px;height:34px;border-radius:50%;background:#F2F5F7;color:#4D5D6A;font-size:20px;display:grid;place-items:center;line-height:1}
 .demo-frame{border:0;width:100%;height:100%;background:var(--paper)}
 
-/* ===== Preparando correo / toast ===== */
-.mail-prep{position:fixed;inset:0;background:var(--paper);display:none;place-items:center;z-index:100}
-.mail-prep.show{display:grid}
-.mail-prep-card{text-align:center;padding:24px}
-.mail-prep-icon{width:60px;height:60px;border-radius:18px;background:#EAF4FB;color:var(--commercial);display:grid;place-items:center;margin:0 auto 14px;animation:pulse 1s ease-in-out infinite}
-.mail-prep b{display:block;color:var(--navy);font-size:16px}
-.mail-prep span{display:block;color:var(--muted);font-size:11.5px;margin-top:6px}
-.loader{width:130px;height:3px;border-radius:99px;background:#E4EDF4;margin:16px auto 0;overflow:hidden}
-.loader i{display:block;width:42%;height:100%;background:var(--commercial);border-radius:99px;animation:load 1s ease-in-out infinite}
-@keyframes load{0%{transform:translateX(-110%)}100%{transform:translateX(340%)}}
-@keyframes pulse{50%{transform:scale(.96)}}
+/* ===== Banner de asistencia (post-clic WhatsApp/Correo) ===== */
+.assist-banner{
+  position:fixed;left:50%;bottom:18px;transform:translate(-50%,40px);
+  width:min(calc(100% - 24px),420px);
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:14px 40px 14px 14px;
+  box-shadow:0 20px 48px rgba(8,27,44,.18);
+  display:grid;grid-template-columns:auto 1fr;gap:10px 12px;
+  opacity:0;pointer-events:none;transition:.35s var(--ease);z-index:98;
+}
+.assist-banner.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.assist-icon{
+  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:var(--tint);color:var(--commercial);grid-row:1/3;
+}
+.assist-icon.wa{background:#EAF8EF;color:var(--green)}
+.assist-body b{display:block;font-size:12.5px;color:var(--navy);line-height:1.3}
+.assist-body span{display:block;font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.assist-actions{grid-column:2;display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+.assist-actions button{
+  font-size:10.5px;font-weight:700;border-radius:999px;padding:7px 12px;
+  border:1px solid var(--line);background:var(--soft);color:var(--navy);
+  transition:.18s ease;
+}
+.assist-actions button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.assist-actions button:active{transform:scale(.95)}
+.assist-actions button.copied{background:#EAF8EF;color:var(--green-deep);border-color:#C6E9D2}
+.assist-x{position:absolute;top:10px;right:10px;color:#9AA6B2;font-size:17px;line-height:1;padding:4px}
+
 .page-toast{
   position:fixed;left:50%;bottom:20px;transform:translate(-50%,30px);
   background:#10253A;color:#fff;font-size:11.5px;font-weight:600;
@@ -441,16 +459,15 @@ select.control{appearance:auto}
   </div>
 </div>
 
-<!-- Preparando correo -->
-<div class="mail-prep" id="mailPrep" aria-live="polite">
-  <div class="mail-prep-card">
-    <div class="mail-prep-icon" aria-hidden="true">
-      <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>
-    </div>
-    <b>Preparando tu correo…</b>
-    <span>Abriremos tu aplicación de correo.</span>
-    <div class="loader"><i></i></div>
+<!-- Asistencia post-clic (WhatsApp / Correo) -->
+<div class="assist-banner" id="assistBanner" role="status" aria-live="polite">
+  <div class="assist-icon" id="assistIcon" aria-hidden="true"></div>
+  <div class="assist-body">
+    <b id="assistTitle"></b>
+    <span id="assistSub"></span>
   </div>
+  <div class="assist-actions" id="assistActions"></div>
+  <button class="assist-x" id="assistClose" type="button" aria-label="Cerrar">×</button>
 </div>
 
 <!-- Toast -->
@@ -572,18 +589,121 @@ select.control{appearance:auto}
   waBtn.addEventListener('click', () => {
     if(!valid()) return;
     sendLead('whatsapp');
-    location.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(messageText())}`;
+    const url = `https://api.whatsapp.com/send?phone=${CONFIG.whatsapp}&text=${encodeURIComponent(messageText())}`;
+    openExternal('whatsapp', url);
   });
-  emailBtn.addEventListener('click', async () => {
+
+  emailBtn.addEventListener('click', () => {
     if(!valid()) return;
     sendLead('email');
     const subject = `Solicitud de asesoría — ${name.value.trim()}`;
     const body = messageText() + `\n\nQuedo atento(a).`;
-    const prep = $('#mailPrep'); prep.classList.add('show');
-    await new Promise(r => setTimeout(r, reduced ? 120 : 1000));
-    location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setTimeout(() => prep.classList.remove('show'), 1200);
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=${encodeURIComponent(CONFIG.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    openExternal('email', gmailUrl, {
+      mailto: `mailto:${CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    });
   });
+
+  /* ---------- Apertura externa inteligente + rescate si no pasó nada ---------- */
+  const assist = $('#assistBanner'), assistIcon = $('#assistIcon'),
+        assistTitle = $('#assistTitle'), assistSub = $('#assistSub'),
+        assistActions = $('#assistActions');
+  let assistTimer = null, cameBackHandler = null;
+
+  function hideAssist(){
+    assist.classList.remove('show');
+    clearTimeout(assistTimer);
+    if(cameBackHandler){
+      document.removeEventListener('visibilitychange', cameBackHandler);
+      window.removeEventListener('focus', cameBackHandler);
+      cameBackHandler = null;
+    }
+  }
+  $('#assistClose').addEventListener('click', hideAssist);
+
+  function copyToClipboard(text, btn){
+    navigator.clipboard?.writeText(text).then(() => {
+      if(btn){ const old = btn.textContent; btn.textContent = '¡Copiado!'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = old; btn.classList.remove('copied'); }, 1600); }
+    }).catch(() => showToast('No se pudo copiar'));
+  }
+
+  function showAssist(kind, opts = {}){
+    assistIcon.className = 'assist-icon' + (kind === 'whatsapp' ? ' wa' : '');
+    assistActions.innerHTML = '';
+    if(kind === 'whatsapp'){
+      assistIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/></svg>';
+      assistTitle.textContent = '¿No se abrió WhatsApp?';
+      assistSub.textContent = 'Puede que no esté instalado en este dispositivo.';
+      const copyMsgBtn = document.createElement('button');
+      copyMsgBtn.className = 'primary'; copyMsgBtn.textContent = 'Copiar mensaje';
+      copyMsgBtn.onclick = () => copyToClipboard(messageText(), copyMsgBtn);
+      const copyNumBtn = document.createElement('button');
+      copyNumBtn.textContent = 'Copiar número';
+      copyNumBtn.onclick = () => copyToClipboard('3025330094', copyNumBtn);
+      const webBtn = document.createElement('button');
+      webBtn.textContent = 'Usar WhatsApp Web';
+      webBtn.onclick = () => window.open(`https://web.whatsapp.com/send?phone=${CONFIG.whatsapp}&text=${encodeURIComponent(messageText())}`, '_blank', 'noopener');
+      assistActions.append(copyMsgBtn, copyNumBtn, webBtn);
+    } else {
+      assistIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>';
+      assistTitle.textContent = '¿No se abrió Gmail?';
+      assistSub.textContent = 'Copia el mensaje o ábrelo con tu app de correo.';
+      const copyMsgBtn = document.createElement('button');
+      copyMsgBtn.className = 'primary'; copyMsgBtn.textContent = 'Copiar mensaje';
+      copyMsgBtn.onclick = () => copyToClipboard(messageText(), copyMsgBtn);
+      const appBtn = document.createElement('button');
+      appBtn.textContent = 'Abrir con mi app';
+      appBtn.onclick = () => { location.href = opts.mailto; hideAssist(); };
+      assistActions.append(copyMsgBtn, appBtn);
+    }
+    assist.classList.add('show');
+  }
+
+  function showWelcomeBack(kind){
+    showToast(kind === 'whatsapp' ? '¿Ya enviaste tu mensaje? Seguimos aquí 🙂' : '¿Ya enviaste tu correo? Seguimos aquí 🙂');
+  }
+
+  /**
+   * Abre WhatsApp/Gmail en pestaña nueva (la página nunca se pierde) y,
+   * si tras unos segundos el usuario sigue viendo esta pestaña, asume que
+   * no había WhatsApp/Gmail disponible y ofrece alternativas manuales.
+   */
+  function openExternal(kind, url, opts = {}){
+    hideAssist();
+    let leftTab = false;
+    const onAway = () => { leftTab = true; };
+    document.addEventListener('visibilitychange', onAway);
+    window.addEventListener('blur', onAway);
+
+    const win = window.open(url, '_blank');
+    if(win){ win.opener = null; } else {
+      // Ventana emergente bloqueada por el navegador: usar la pestaña actual como respaldo.
+      document.removeEventListener('visibilitychange', onAway);
+      window.removeEventListener('blur', onAway);
+      location.href = url;
+      return;
+    }
+
+    assistTimer = setTimeout(() => {
+      document.removeEventListener('visibilitychange', onAway);
+      window.removeEventListener('blur', onAway);
+      if(leftTab || document.hidden){
+        const onBack = () => {
+          if(!document.hidden){
+            showWelcomeBack(kind);
+            document.removeEventListener('visibilitychange', onBack);
+            window.removeEventListener('focus', onBack);
+          }
+        };
+        cameBackHandler = onBack;
+        document.addEventListener('visibilitychange', onBack);
+        window.addEventListener('focus', onBack);
+      } else {
+        showAssist(kind, opts);
+      }
+    }, 2600);
+  }
 
   const catalogBtn = $('#catalogBtn');
   if(CONFIG.catalogUrl){
