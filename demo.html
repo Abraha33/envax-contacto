@@ -480,6 +480,16 @@
   .ctrl:active{transform:scale(.96);}
   .ctrl:focus-visible{outline:2.5px solid var(--commercial);outline-offset:2px;}
 
+
+  /* Modo compacto (incrustado en escritorio) */
+  body.compact{padding:10px;}
+  body.compact .stage{gap:12px;}
+  body.compact .phone{width:min(272px,86vw);}
+  body.compact .caption{font-size:12.5px;min-height:36px;}
+  body.compact .eyebrow{font-size:9px;}
+  body.compact .ctrl{padding:7px 13px;font-size:11px;}
+  body.compact .progress{width:min(220px,78%);}
+
   @media (prefers-reduced-motion:reduce){
     .view,.dropdown,.dd-item,.toast,.toast-and,.bigcheck,.input,.channel,
     .finger .dot,.bubble-in,.bubble-out,.wp-menu,.ac-field,.progress i{transition-duration:.01s !important;}
@@ -779,6 +789,7 @@
 <script>
 (function(){
   "use strict";
+  if(new URLSearchParams(location.search).get("compact")==="1") document.body.classList.add("compact");
   const $  = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
