@@ -164,15 +164,15 @@
   .channel.email .mini{background:#EAF4FA;color:var(--commercial);}
 
   .dropdown{
-    position:absolute;left:30px;right:30px;
+    position:absolute;left:30px;right:30px;top:0;visibility:hidden;
     background:var(--card);border-radius:14px;
     box-shadow:0 14px 34px -10px rgba(1,90,170,.3), 0 2px 6px rgba(1,90,170,.08);
     overflow:hidden;transform-origin:top center;
     transform:scaleY(.7);opacity:0;
-    transition:transform .28s cubic-bezier(.22,.9,.3,1), opacity .24s ease;
+    transition:transform .28s cubic-bezier(.22,.9,.3,1), opacity .24s ease, visibility 0s .28s;
     pointer-events:none;z-index:30;
   }
-  .dropdown.open{transform:scaleY(1);opacity:1;}
+  .dropdown.open{transform:scaleY(1);opacity:1;visibility:visible;transition:transform .28s cubic-bezier(.22,.9,.3,1), opacity .24s ease;}
   .dd-item{
     display:flex;align-items:center;justify-content:space-between;
     padding:10px 14px;font-size:12.5px;color:var(--ink);
@@ -840,9 +840,14 @@
   });
   const alive = my => my === runId;
 
+  function screenScale(){
+    const s = screen.getBoundingClientRect();
+    return (s.width / screen.offsetWidth) || 1;
+  }
   function centerOf(el, dx=0, dy=0){
     const r = el.getBoundingClientRect(), s = screen.getBoundingClientRect();
-    return { x: r.left - s.left + r.width/2 + dx, y: r.top - s.top + r.height/2 + dy };
+    const k = screenScale();
+    return { x:(r.left - s.left + r.width/2)/k + dx, y:(r.top - s.top + r.height/2)/k + dy };
   }
   const placeFinger = (x,y)=>{ finger.style.left=x+"px"; finger.style.top=y+"px"; };
   let fingerLight = true;
@@ -1012,7 +1017,7 @@
     await setCaption("Paso 1 · Tus datos", "…y elige el <em>tipo de negocio</em>");
     const inpType = $("#inp-type"), dd = $("#dropdown");
     const tr = inpType.getBoundingClientRect(), sr = screen.getBoundingClientRect();
-    dd.style.top = (tr.bottom - sr.top + 6) + "px";
+    dd.style.top = ((tr.bottom - sr.top) / screenScale() + 6) + "px";
     await tap(inpType); if(!alive(my)) return;
     inpType.classList.add("focus");
     $("#dd-arrow").classList.add("up");
@@ -1198,6 +1203,7 @@
     }
   }
   window.addEventListener("resize", fitStage);
+  if("ResizeObserver" in window){ new ResizeObserver(fitStage).observe(document.body); }
   window.addEventListener("load", fitStage);
   setTimeout(fitStage, 60); setTimeout(fitStage, 400);
 
