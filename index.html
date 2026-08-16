@@ -780,7 +780,10 @@ select.control{appearance:auto}
       return;
     }
     lastFocused = document.activeElement;
-    if(!frame.src) frame.src = CONFIG.demoUrl;
+    // Siempre se reasigna: garantiza que la animación se reinicie en cada apertura,
+    // no solo la primera (leer frame.src de vuelta nunca da cadena vacía, así que
+    // comprobar su "verdad" es poco fiable).
+    frame.src = CONFIG.demoUrl;
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
     $('#demoClose').focus();
@@ -788,7 +791,7 @@ select.control{appearance:auto}
   function closeDemo(focusForm){
     overlay.classList.remove('open');
     document.body.style.overflow = '';
-    setTimeout(() => { frame.src = ''; }, 350);
+    setTimeout(() => { frame.removeAttribute('src'); }, 350);
     if(focusForm){
       const intake = $('#intake');
       intake.classList.remove('glow'); void intake.offsetWidth; intake.classList.add('glow');
