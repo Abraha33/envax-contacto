@@ -719,7 +719,7 @@
         </div>
         <div class="wa-body">
           <div class="wa-daychip"><span>Hoy</span></div>
-          <div class="wa-encrypt">🔒 Los mensajes y llamadas están cifrados de extremo a extremo.</div>
+          <div class="wa-encrypt">Los mensajes y llamadas están cifrados de extremo a extremo.</div>
           <div style="flex:1"></div>
           <div class="bubble bubble-out" id="wa-bubble">
             <span id="wa-msg"></span>
@@ -729,7 +729,7 @@
           </div>
           <div class="bubble bubble-in" id="wa-reply">
             <span class="typing" id="wa-typing"><i></i><i></i><i></i></span>
-            <span id="wa-reply-txt" style="display:none">¡Hola! 👋 Con gusto te asesoramos. ¿Qué productos necesitas para tu heladería?</span>
+            <span id="wa-reply-txt" style="display:none">¡Hola! Con gusto te asesoramos. ¿Qué productos necesitas para tu heladería?</span>
             <div class="meta" id="wa-reply-meta" style="display:none"><span class="time">9:42</span></div>
           </div>
         </div>
@@ -1155,7 +1155,7 @@
     $("#wa-reply-txt").style.display = "";
     $("#wa-reply-meta").style.display = "";
     $("#wa-status").textContent = "en línea";
-    await setCaption("Paso 4 · Chat", "ENVAX responde y te <em>asesora al instante</em> ✅");
+    await setCaption("Paso 4 · Chat", "ENVAX responde y te <em>asesora al instante</em>");
     await sleep(1950); if(!alive(my)) return;
 
     /* --- Correo --- */
@@ -1167,7 +1167,7 @@
     hideFinger();
     await showView("mail"); if(!alive(my)) return;
 
-    await setCaption("Paso 5 · Correo", "El correo se arma <em>solo</em>: asunto y mensaje listos ✉️");
+    await setCaption("Paso 5 · Correo", "El correo se arma <em>solo</em>: asunto y mensaje listos");
     await sleep(280);
     await typeHTML($("#m-from"), "heladeriala27@gmail.com", 10); if(!alive(my)) return;
     await typeHTML($("#m-to"),   "envax.santander@gmail.com", 10); if(!alive(my)) return;
@@ -1191,7 +1191,7 @@
     await tap($("#send-btn"), 0, 0, "pressed"); if(!alive(my)) return;
     hideFinger();
     $("#toast").classList.add("show");
-    await setCaption("Paso 6 · Enviar", "<em>Mensaje enviado</em> ✅ Nosotros respondemos");
+    await setCaption("Paso 6 · Enviar", "<em>Mensaje enviado</em>. Nosotros respondemos");
     await sleep(1850); if(!alive(my)) return;
     $("#toast").classList.remove("show");
 
