@@ -1,0 +1,74 @@
+[
+  {
+    "viewport": "1024x768",
+    "mobile_emulation": false,
+    "innerWidth": 1024,
+    "innerHeight": 768,
+    "scrollWidth": 1009,
+    "scrollHeight": 1239,
+    "hasHorizontalOverflow": false
+  },
+  {
+    "viewport": "1366x768",
+    "mobile_emulation": false,
+    "innerWidth": 1366,
+    "innerHeight": 768,
+    "scrollWidth": 1366,
+    "scrollHeight": 768,
+    "hasHorizontalOverflow": false
+  },
+  {
+    "viewport": "1440x900",
+    "mobile_emulation": false,
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "scrollWidth": 1440,
+    "scrollHeight": 900,
+    "hasHorizontalOverflow": false
+  },
+  {
+    "viewport": "1920x1080",
+    "mobile_emulation": false,
+    "innerWidth": 1920,
+    "innerHeight": 1080,
+    "scrollWidth": 1920,
+    "scrollHeight": 1080,
+    "hasHorizontalOverflow": false
+  },
+  {
+    "viewport": "360x800",
+    "mobile_emulation": true,
+    "innerWidth": 360,
+    "innerHeight": 800,
+    "scrollWidth": 360,
+    "scrollHeight": 1258,
+    "hasHorizontalOverflow": false
+  },
+  {
+    "viewport": "390x844",
+    "mobile_emulation": true,
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "scrollWidth": 390,
+    "scrollHeight": 1203,
+    "hasHorizontalOverflow": false
+  },
+  {
+    "viewport": "430x932",
+    "mobile_emulation": true,
+    "innerWidth": 430,
+    "innerHeight": 932,
+    "scrollWidth": 430,
+    "scrollHeight": 1201,
+    "hasHorizontalOverflow": false
+  },
+  {
+    "viewport": "844x390",
+    "mobile_emulation": true,
+    "innerWidth": 844,
+    "innerHeight": 390,
+    "scrollWidth": 844,
+    "scrollHeight": 1215,
+    "hasHorizontalOverflow": false
+  }
+]

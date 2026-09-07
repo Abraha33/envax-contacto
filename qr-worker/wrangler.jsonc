@@ -2,12 +2,18 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "envax-qr-tracker",
 	"main": "src/index.js",
+	"migrations_dir": "migrations",
 	"compatibility_date": "2026-09-07",
 	"workers_dev": true,
 	"vars": {
 		"DESTINATION_URL": "https://contacto.desechablesenvax.com/",
 		"DEFAULT_SOURCE": "tarjeta",
-		"ALLOWED_ORIGINS": "https://contacto.desechablesenvax.com,https://envax-contacto.pages.dev"
+		"ALLOWED_ORIGINS": "https://contacto.desechablesenvax.com,https://envax-contacto.pages.dev",
+		"NOTIFY_ON_SCAN": "false",
+		"NOTIFY_ON_WHATSAPP": "false",
+		"NOTIFY_ON_PHONE": "false",
+		"NOTIFY_ON_EMAIL": "false",
+		"NOTIFY_ON_FORM_SUBMIT": "false"
 	},
 	"d1_databases": [
 		{
