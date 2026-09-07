@@ -1,12 +1,20 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "envax-qr-tracker",
-  "main": "src/index.js",
-  "compatibility_date": "2026-09-07",
-  "workers_dev": true,
-  "vars": {
-    "DESTINATION_URL": "https://contacto.desechablesenvax.com/",
-    "DEFAULT_SOURCE": "tarjeta",
-    "ALLOWED_ORIGINS": "https://contacto.desechablesenvax.com,https://envax-contacto.pages.dev"
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "envax-qr-tracker",
+	"main": "src/index.js",
+	"compatibility_date": "2026-09-07",
+	"workers_dev": true,
+	"vars": {
+		"DESTINATION_URL": "https://contacto.desechablesenvax.com/",
+		"DEFAULT_SOURCE": "tarjeta",
+		"ALLOWED_ORIGINS": "https://contacto.desechablesenvax.com,https://envax-contacto.pages.dev"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "envax-qr-analytics",
+			"database_id": "f511a4d3-400a-4a0c-ab1c-4de640078332",
+			"remote": true
+		}
+	]
 }
