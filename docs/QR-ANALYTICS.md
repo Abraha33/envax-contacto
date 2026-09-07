@@ -63,4 +63,20 @@ FROM events
 WHERE event_type IN ('whatsapp_click','phone_click','email_click','form_submit')
 GROUP BY event_type
 ORDER BY total DESC;
+
+-- Ubicacion aproximada, tecnologia y fuente para un dashboard posterior
+SELECT country, region, city, count(*) AS scans
+FROM scans
+GROUP BY country, region, city
+ORDER BY scans DESC;
+
+SELECT device, os, browser, count(*) AS scans
+FROM scans
+GROUP BY device, os, browser
+ORDER BY scans DESC;
+
+SELECT source, campaign_source, campaign_medium, campaign_name, count(*) AS scans
+FROM scans
+GROUP BY source, campaign_source, campaign_medium, campaign_name
+ORDER BY scans DESC;
 ```

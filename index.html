@@ -294,7 +294,7 @@ select.control{appearance:auto}
 .page-toast svg{color:#5AE3A0;flex:0 0 auto}
 
 /* ===== Responsive ===== */
-@media (min-width:1100px) and (min-height:700px){
+@media (min-width:1100px) and (min-height:760px){
    .site-head{padding-top:20px}
    .main-zone{padding:18px 0 10px}
    .grid{grid-template-columns:minmax(0,500px) minmax(360px,460px);justify-content:space-between;gap:clamp(32px,5vw,72px)}
@@ -512,7 +512,7 @@ select.control{appearance:auto}
         <button class="close" id="demoClose" type="button" aria-label="Cerrar demostración">×</button>
       </span>
     </div>
-    <iframe class="demo-frame" id="demoFrame" title="Demostración animada ENVAX" loading="lazy"></iframe>
+    <iframe class="demo-frame" id="demoFrame" title="Demostración animada ENVAX" loading="lazy" tabindex="-1"></iframe>
   </div>
 </div>
 
@@ -560,7 +560,7 @@ select.control{appearance:auto}
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const mqDesktop = matchMedia('(min-width:1100px) and (min-height:700px)');
+  const mqDesktop = matchMedia('(min-width:1100px) and (min-height:760px)');
   const isDesktop = () => mqDesktop.matches;
 
   $$('.reveal').forEach((el,i) => setTimeout(() => el.classList.add('in'), reduced ? 0 : 80 + i*80));
@@ -907,6 +907,12 @@ select.control{appearance:auto}
   overlay.addEventListener('click', e => { if(e.target === overlay) closeDemo(false); });
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape' && overlay.classList.contains('open')) closeDemo(false);
+    if(e.key === 'Tab' && overlay.classList.contains('open')){
+      const focusables = [$('#demoSkip'), $('#demoClose')];
+      const first = focusables[0], last = focusables.at(-1);
+      if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+    }
   });
   window.addEventListener('message', e => {
     if(e.data?.type === 'envax-demo-finished' && overlay.classList.contains('open')){

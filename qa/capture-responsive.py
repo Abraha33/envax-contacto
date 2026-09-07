@@ -20,14 +20,26 @@ EDGE = next(
     if path.exists()
 )
 VIEWPORTS = [
-    ("desktop-1024x768", 1024, 768, False),
+    ("tablet-768x1024", 768, 1024, True),
+    ("tablet-820x1180", 820, 1180, True),
+    ("tablet-1024x768", 1024, 768, False),
+    ("tablet-1024x1366", 1024, 1366, False),
+    ("desktop-1280x720", 1280, 720, False),
     ("desktop-1366x768", 1366, 768, False),
     ("desktop-1440x900", 1440, 900, False),
+    ("desktop-1600x900", 1600, 900, False),
     ("desktop-1920x1080", 1920, 1080, False),
+    ("desktop-2560x1440", 2560, 1440, False),
+    ("desktop-3122x2120", 3122, 2120, False),
     ("mobile-360x800", 360, 800, True),
+    ("mobile-375x812", 375, 812, True),
     ("mobile-390x844", 390, 844, True),
+    ("mobile-393x873", 393, 873, True),
+    ("mobile-412x915", 412, 915, True),
     ("mobile-430x932", 430, 932, True),
     ("landscape-844x390", 844, 390, True),
+    ("landscape-932x430", 932, 430, True),
+    ("landscape-1024x600", 1024, 600, False),
 ]
 
 
@@ -61,7 +73,7 @@ try:
         command(ws, counter, "Page.navigate", {"url": "http://127.0.0.1:4173/index.html"})
         time.sleep(6)
         metrics = command(ws, counter, "Runtime.evaluate", {
-            "expression": "JSON.stringify({innerWidth,innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,hasHorizontalOverflow:document.documentElement.scrollWidth > window.innerWidth})",
+            "expression": "JSON.stringify({innerWidth,innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,hasHorizontalOverflow:document.documentElement.scrollWidth > window.innerWidth,hasVerticalOverflow:document.documentElement.scrollHeight > window.innerHeight})",
             "returnByValue": True,
         })["result"]["result"]["value"]
         screenshot = command(ws, counter, "Page.captureScreenshot", {"format": "png"})["result"]["data"]

@@ -17,6 +17,14 @@ const EVENT_NOTIFICATION_FLAGS = {
   email_click: "NOTIFY_ON_EMAIL"
 };
 
+const NOTIFICATION_TYPES = {
+  scan: "SCAN",
+  form_submit: "LEAD",
+  whatsapp_click: "CONTACT_INTENT",
+  phone_click: "CONTACT_INTENT",
+  email_click: "CONTACT_INTENT"
+};
+
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
@@ -205,6 +213,7 @@ async function sendNotification(env, event, scan = {}) {
   const location = [scan.city, scan.region, scan.country].filter(Boolean).join(", ") || "Ubicación aproximada no disponible";
   const shortScanId = event.scanId.slice(0, 6).toUpperCase();
   const channel = event.metadata.channel || event.eventType.replace("_click", "");
+  const notificationType = NOTIFICATION_TYPES[event.eventType] || "SYSTEM_ERROR";
 
   await env.EMAIL.send({
     from: env.ALERT_FROM,
@@ -214,6 +223,7 @@ async function sendNotification(env, event, scan = {}) {
       `ENVAX — ${labels[event.eventType]}`,
       "",
       `Canal: ${channel}`,
+      `Tipo: ${notificationType}`,
       `Origen: ${scan.source || event.metadata.qr_source || "No disponible"}`,
       `Ubicación aproximada: ${location}`,
       `Dispositivo: ${scan.device || "No disponible"}`,
