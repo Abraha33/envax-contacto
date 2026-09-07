@@ -10,3 +10,5 @@ Settings → Pages → Deploy from a branch → `main` / `(root)`.
 
 ## Configuración (`CONFIG` en index.html)
 `whatsapp`, `email`, `catalogUrl` (activa el botón de catálogo), `leadEndpoint` (POST JSON opcional), `firstVisitAutoOpen`. `?demo=1` fuerza la demo en móvil.
+
+<!-- cloudflare-deploy-test -->
