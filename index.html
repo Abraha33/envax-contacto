@@ -294,7 +294,7 @@ select.control{appearance:auto}
 .page-toast svg{color:#5AE3A0;flex:0 0 auto}
 
 /* ===== Responsive ===== */
-@media (min-width:1100px) and (min-height:760px){
+@media (min-width:1100px){
    .site-head{padding-top:20px}
    .main-zone{padding:18px 0 10px}
    .grid{grid-template-columns:minmax(0,500px) minmax(360px,460px);justify-content:space-between;gap:clamp(32px,5vw,72px)}
@@ -377,9 +377,8 @@ select.control{appearance:auto}
   .channel .mini{margin-bottom:0}
   .channel small{font-size:9px}
 }
-/* Pantallas anchas pero bajas (móvil horizontal / tablet landscape):
-   reparte el contenido en dos columnas para que todo quepa sin scroll. */
-@media (orientation:landscape) and (min-width:640px) and (max-width:1099px) and (max-height:779px){
+/* Pantallas anchas pero bajas (móvil horizontal / tablet landscape). */
+@media (min-width:640px) and (max-width:1099px) and (max-height:779px){
    .site-head{padding-top:4px}
    .main-zone{padding-top:2px}
    .brand .mark{width:30px}
@@ -420,19 +419,6 @@ select.control{appearance:auto}
    .copy-btn{font-size:7.5px;padding:4px 7px}
    .site-foot{padding:2px 0 4px}
    .site-foot .wrap{font-size:8.5px}
-}
-/* Escritorios anchos pero bajos (1100–1359px, altura < 760px): 
-   dos columnas para que todo quepa sin scroll. */
-@media (min-width:1100px) and (max-width:1359px) and (max-height:759px){
-   .screen-col{
-     max-width:1180px;margin:0 auto;
-     display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-     gap:0 30px;align-items:start;
-   }
-   .hero{grid-column:1;grid-row:1;align-self:start}
-   .intake{grid-column:1;grid-row:2}
-   .catalog-row{grid-column:2;grid-row:1;margin-top:0}
-   .direct{grid-column:2;grid-row:2}
 }
 @media (prefers-reduced-motion:reduce){
   *{scroll-behavior:auto!important;transition-duration:.01s!important;animation-duration:.01s!important}
@@ -641,7 +627,7 @@ select.control{appearance:auto}
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const mqDesktop = matchMedia('(min-width:1100px) and (min-height:760px)');
+  const mqDesktop = matchMedia('(min-width:1100px)');
   const isDesktop = () => mqDesktop.matches;
 
   $$('.reveal').forEach((el,i) => setTimeout(() => el.classList.add('in'), reduced ? 0 : 80 + i*80));
@@ -862,7 +848,7 @@ select.control{appearance:auto}
   }
 
   function showWelcomeBack(kind){
-    showToast(kind === 'whatsapp' ? '¿Ya enviaste tu mensaje? Seguimos aquí 🙂' : '¿Ya enviaste tu correo? Seguimos aquí 🙂');
+    showToast(kind === 'whatsapp' ? 'Ya enviaste tu mensaje. Seguimos aqui.' : 'Ya enviaste tu correo. Seguimos aqui.');
   }
 
   /**

@@ -73,7 +73,7 @@ try:
         command(ws, counter, "Page.navigate", {"url": "http://127.0.0.1:4173/index.html"})
         time.sleep(6)
         metrics = command(ws, counter, "Runtime.evaluate", {
-            "expression": "JSON.stringify({innerWidth,innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,hasHorizontalOverflow:document.documentElement.scrollWidth > window.innerWidth,hasVerticalOverflow:document.documentElement.scrollHeight > window.innerHeight})",
+            "expression": "JSON.stringify((()=>{const box=(selector)=>{const el=document.querySelector(selector);if(!el||getComputedStyle(el).display==='none')return null;const r=el.getBoundingClientRect();return {top:Math.round(r.top),bottom:Math.round(r.bottom),left:Math.round(r.left),right:Math.round(r.right),clipped:r.top<0||r.bottom>innerHeight||r.left<0||r.right>innerWidth};};return {innerWidth,innerHeight,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight,hasHorizontalOverflow:document.documentElement.scrollWidth > window.innerWidth,hasVerticalOverflow:document.documentElement.scrollHeight > window.innerHeight,critical:{hero:box('.hero'),form:box('#intake'),catalog:box('.catalog-row'),direct:box('.direct'),demo:box('.demo-panel'),footer:box('.site-foot')}}})())",
             "returnByValue": True,
         })["result"]["result"]["value"]
         screenshot = command(ws, counter, "Page.captureScreenshot", {"format": "png"})["result"]["data"]
