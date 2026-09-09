@@ -2,7 +2,7 @@
 
 Página de contacto de Desechables ENVAX (Bucaramanga) con demostración animada y atribución first-party para el QR permanente.
 
-- `index.html` — Página de contacto. Solo muestra demo inline cuando el ancho y alto permiten dos columnas cómodas; en el resto de tamaños la demo se abre explícitamente desde el control disponible.
+- `index.html` — Página de contacto. Muestra la demo inline en desktop desde `1100px`; en tablet, móvil y formatos bajos la demo se abre explícitamente desde el control disponible, sin bloquear el contacto.
 - `demo.html` — Demostración animada que se adapta a su iframe. `?compact=1` reduce el teléfono para el panel de escritorio.
 - `qr-worker/` — Worker de Cloudflare + D1 para `/tarjeta` y `/api/qr/event`.
 - `docs/` — Contrato QR, funnel, privacidad, notificaciones y QA responsive.

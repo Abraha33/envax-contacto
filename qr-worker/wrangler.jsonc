@@ -2,7 +2,6 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "envax-qr-tracker",
 	"main": "src/index.js",
-	"migrations_dir": "migrations",
 	"compatibility_date": "2026-09-07",
 	"workers_dev": true,
 	"vars": {
