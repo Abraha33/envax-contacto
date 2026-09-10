@@ -1,59 +1,84 @@
 # ENVAX — Open Questions
 
-## Current priority: seller extension
-1. Does the seller have to confirm extracted data before the extension writes to ENVAX/Sheet?
-2. What exact text does Wappsi expose when a seller manually copies a quotation/order/invoice?
-3. What is the minimum extraction schema?
-4. How are ambiguous/missing fields handled?
-5. How is the correct ENVAX customer/request matched?
-6. Does real transaction volume justify building the extension now?
+Most remaining questions are UX/architecture/implementation decisions that can be resolved from the approved product rules. The items below are the true unresolved dependencies or decisions that must not be guessed.
 
-## Google Sheet
-7. Final columns for `Solicitudes automáticas`.
-8. Final columns for `Pedidos confirmados`.
-9. Who owns/maintains the Sheet?
-10. How does ENVAX write to it securely?
-11. How are seller assignment and states represented?
+## 1. Anonymous identity / cross-device
+- Exact technical mechanism for anonymous-profile recovery across devices.
+- How an anonymous profile is later linked to optional Portal identity.
+- Duplicate-profile merge/recovery rules.
 
-## Customer identity / persistence
-12. How is a returning customer recognized without traditional login friction?
-13. How is identity joined across phone and desktop?
-14. How long is Mi selección retained?
-15. Are multiple named/dated selections required in the MVP or later?
+## 2. Customer Portal
+- Exact additional data/verification required to activate Portal mode.
+- Final order-detail fields visible to the customer.
 
-## Advisor operations
-16. Exact destination of new requests.
-17. Assignment logic for sellers.
-18. Required response-time promise / wording.
-19. Whether advisor status lives only in Sheet or later in ENVAX.
+Current approved portal purpose: view orders. Do not add invoices, accounting, private prices, checkout, or ecommerce behavior without approval.
 
-## Catalog content
-20. Final public product fields.
-21. Final canonical source for name/category/family/brand/image.
-22. Product-master-to-ERP identifier mapping.
-23. Missing-image policy.
-24. Final grid density after visual testing.
+## 3. Public product fields
+Approved public fields:
+- name;
+- brand;
+- reference.
 
-## ERP / Wappsi — all pending validation
-25. Products/prices in real production environment.
-26. Customer-specific prices.
-27. Customer lookup/identity.
-28. Full invoices by customer.
-29. Create/send orders externally.
-30. Order status/readback.
-31. Promotions/stock/variants behavior.
-32. Pagination, limits, production URL, credentials, permissions, errors, synchronization.
+Product photo is not approved as public.
 
-## Promotions / PWA
-33. Promotion eligibility rules.
-34. Consent copy and record.
-35. Frequency limits.
-36. Channel strategy.
-37. iPhone/Safari push constraints.
-38. Whether PWA adds enough value after MVP validation.
+Still pending:
+- variants/presentation;
+- descriptions/features;
+- availability/stock;
+- technical data;
+- any additional ERP-derived fields.
 
-## Infrastructure
-39. Final application architecture/stack.
-40. Cloudflare domain/subdomain cleanup after architecture is closed.
-41. Analytics event schema.
-42. Privacy/data-retention policy.
+## 4. Seller extension / real ERP samples
+- Collect 5–10 real copied-text examples from the actual ERP seller workflow.
+- Final extraction schema.
+- Exact matching keys between ERP content and ENVAX request/customer.
+- Error behavior for incomplete/ambiguous selections.
+
+Canonical effect after successful processing is already defined: `solicitud → pedido` automatically across ENVAX.
+
+## 5. ERP / Wappsi — all pending real validation
+Do not assume any capability until tested and approved, including:
+- products/prices;
+- customer-specific prices;
+- customer lookup;
+- invoices;
+- create/send orders;
+- order readback/status;
+- promotions/stock/variants;
+- pagination/limits;
+- production URL;
+- credentials/permissions;
+- errors/synchronization.
+
+## 6. Interim internal operations
+- Final Google Sheet schema if a Sheet is still used.
+- Whether Sheet remains necessary once ENVAX internal states are implemented.
+
+## 7. Promotions implementation details
+Product concept is approved: admin targets a specific customer or business type; customer can select one/multiple promotions and continue through WhatsApp/email to an advisor.
+
+Still pending implementation policy:
+- exact consent wording;
+- sending frequency limits;
+- opt-out behavior;
+- future push/PWA channel rules.
+
+## 8. Infrastructure / architecture
+- Final application stack.
+- Backend/data model.
+- Anonymous identity architecture.
+- Order-state/event model.
+- Extension architecture.
+- Cloudflare domain/subdomain cleanup after architecture is closed.
+- Analytics event schema.
+- Privacy/data-retention policy.
+
+## 9. Visual validation
+- Final product-grid density after real responsive prototypes.
+- Final catalog content presentation once public product fields are closed.
+
+## 10. Pilot validation
+- Whether real customers understand favorites lists.
+- Whether catalog breadth is perceived as intended.
+- Whether order-request and advisor handoff work with minimal friction.
+- Whether seller-extension workflow saves enough time operationally.
