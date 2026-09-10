@@ -3,58 +3,73 @@
 ## Phase 0 — Product definition
 - Consolidate product vision
 - Consolidate user flow
-- Close screen map
+- Close named favorites-list concept
+- Define anonymous-profile + optional Portal concept
+- Define request-to-order state model
+- Define promotion targeting concept
 - Keep ERP/API status explicitly pending until validated
 
-## Phase 1 — Internal seller bridge definition
+## Phase 1 — Seller bridge definition
 - Collect 5–10 real ERP text samples
 - Define extension extraction schema
-- Decide confirmation-before-write behavior
-- Define Sheet columns and workflow
-- Validate whether operational volume justifies extension development
+- Define customer/request matching rules
+- Define automatic `solicitud → pedido` update behavior
+- Define failure/ambiguity handling
+- Define Sheet columns/workflow if Sheet remains useful
 
-## Phase 2 — Catalog MVP
+## Phase 2 — V1 catalog + order-request MVP
 - Landing
 - Catalog cover/index
 - Category/brand exploration
 - Product listing/detail
 - Search/filters
-- Mi selección
-- Advisor/quote handoff
-- Short WhatsApp/email confirmation
+- Anonymous profile/session foundation
+- Named favorites lists
+- Send order request from favorites
+- Direct advisor contact without favorites
+- WhatsApp/email handoff
+- Simple customer-visible request status
 - Basic analytics
 - Responsive/accessibility testing
 
 ## Phase 3 — Operational pilot
 - Test with real customers
-- Measure catalog → selection → advisor conversion
+- Measure catalog → favorites → order-request conversion
+- Validate whether customers understand named favorites lists
 - Validate advisor handoff quality
-- Validate whether customers understand Mi selección
-- Fix friction before adding major features
+- Validate seller extension workflow
+- Fix friction before major expansion
 
-## Phase 4 — Returning customer layer
-- Persistent selections
-- Customer recognition
-- Cross-device strategy
-- Previous selections/history if proven useful
-- Additional client relationship features only if validated
+## Phase 4 — V1.1 returning customer / Portal
+- Cross-device anonymous-profile recovery/synchronization
+- Optional Portal activation with verified customer data
+- `Mis pedidos`
+- Order detail/status
+- Keep favorites usable independently of Portal
 
-## Phase 5 — ERP integration
+## Phase 5 — V1.2 promotions
+- Administrator promotions module
+- Target specific customer
+- Target business type
+- Customer selects one/multiple promotions
+- WhatsApp/email advisor handoff
+- Consent/privacy/frequency rules
+
+## Phase 6 — ERP integration
 Only after real API validation:
-- Products/prices
-- Customers
-- Invoices
-- Orders
+- Products/prices if approved
+- Customers if approved
+- Invoices if ever required
+- Orders/write integration
 - Status/synchronization
 - Production security and reliability
 
-## Phase 6 — Promotions / PWA
-- Consent model
-- Promotion segmentation
-- Deep-linked promotions
-- PWA installability
-- Browser push where technically appropriate
-- Channel fallback strategy
+## Phase 7 — V2 optional evolution
+- PWA/installability
+- Browser notifications where technically appropriate
+- Sharing products/lists
+- Deeper automation
+- Other customer features only after explicit product approval
 
 ## Rule
-Do not let later phases delay the simple MVP whose goal is to prove that catalog exploration generates useful advisor conversations.
+Do not let later phases turn the public catalog into ecommerce or delay the simple product whose goal is to show variety, preserve customer interest, and generate human-assisted orders.
