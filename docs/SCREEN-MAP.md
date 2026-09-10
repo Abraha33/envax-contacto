@@ -22,36 +22,74 @@ This document defines the inventory of screens/states to design. It is not the f
 17. Error state
 18. 404
 
-## Mi selección
-19. Empty selection
-20. Product-added confirmation
-21. Selection with products
-22. Remove-product state
-23. Add-more-products path
-24. Quote selected products
-25. Contact advisor without selection
-26. Request confirmation
+## Anonymous profile / persistence
+19. Anonymous-profile creation/confirmation state if UX requires one
+20. Anonymous-profile recovery / cross-device state — technical method pending
+21. Returning-customer restored state
 
-## External message views
-27. WhatsApp confirmation message
-28. Email confirmation message
+## Favorites lists
+22. Favorites home / lists index
+23. Empty favorites state
+24. Create named favorites list
+25. Rename list
+26. Favorites list with products
+27. Add product to existing/new list
+28. Product-added confirmation
+29. Remove product
+30. Add more products
+31. Prepare/send order from favorites
 
-## Future returning-customer layer
-29. Restored selection
-30. Previous selections / history
-31. New selection
-32. Promotion landing / deep-linked promotion
-33. Notification permission / settings state if PWA is implemented
-34. Future customer/order/history screens only after scope is validated
+## Order request / advisor
+32. Send-order summary
+33. Choose WhatsApp or Email
+34. Optional short note
+35. Confirm send
+36. `Solicitud enviada` confirmation
+37. `En atención` state
+38. `Pedido confirmado` state
+39. `Completado` state
+40. Contact advisor without favorites
+41. WhatsApp confirmation message
+42. Email confirmation message
 
-## Internal seller flow
-35. Browser-extension idle state
-36. Selected-text capture state
-37. Extraction review state
-38. Validation / missing-fields state
-39. Confirm-and-send state (pending decision)
-40. Success state
-41. Failure / retry state
+## Optional Customer Portal
+43. Portal activation / identification
+44. Portal access/login state
+45. `Mis pedidos`
+46. Order detail/status
+
+Current approved portal purpose is order visibility only. Do not add invoices, accounting, private prices, checkout, or ecommerce behavior without explicit approval.
+
+## Promotions
+47. Promotions feed/list
+48. Promotion detail
+49. Select one/multiple promotions
+50. Promotion selection summary
+51. Continue via WhatsApp/Email
+52. Promotion request confirmation
+
+## Future notification/PWA states
+53. PWA install prompt/state if implemented
+54. Notification permission/settings state
+55. Deep-linked promotion from notification
+
+## Internal administrator
+56. Admin promotions list
+57. Create/edit promotion
+58. Choose recipients
+59. Target specific customer
+60. Target business type
+61. Send/publish confirmation
+
+## Internal seller extension
+62. Extension idle state
+63. Selected-text capture state
+64. Parsing/validation state
+65. Ambiguous/missing-fields state
+66. Customer/request matching state
+67. Automatic successful write state
+68. `solicitud → pedido` success state
+69. Failure / retry state
 
 ## Responsive baseline
 - Desktop large: test 6 product columns.
