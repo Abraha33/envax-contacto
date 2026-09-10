@@ -29,7 +29,8 @@ Before proposing product or implementation changes, read in this order:
 10. `docs/construction-v1/DATA-MODEL.md`
 11. `docs/construction-v1/API-CONTRACTS.md`
 12. `docs/construction-v1/PHASES-AND-GATES.md`
-13. `docs/construction-v1/phase-0/START-HERE.md`
+13. `docs/construction-v1/ALL-PHASES-EXECUTION.md`
+14. `docs/construction-v1/phase-0/START-HERE.md`
 
 ## Canonical product rules
 
@@ -95,6 +96,7 @@ Do not commit confidential Wappsi documents, credentials, API keys, invoices, re
 - Work on branches; do not implement directly on `main`.
 - Execute one phase at a time using explicit gates.
 - Phase 0 is documentation/readiness only.
+- Before starting Phase X, read `docs/construction-v1/phase-X/README.md`, `PHASE-X-EXECUTION-GOAL.md`, and `PHASE-X-GATE-CHECKLIST.md` when those files exist.
 - Do not implement customer-facing visual UI before the relevant design is approved.
 - Every database change later uses versioned migrations.
 - Every write endpoint later defines validation, authorization, idempotency where needed, and audit behavior.
@@ -107,7 +109,7 @@ Only after `PHASE 0: PASS`, create/use:
 `build/foundation-v1`
 
 Then execute:
-`docs/construction-v1/BUILD-START-GOAL.md`
+`docs/construction-v1/phase-1/PHASE-1-EXECUTION-GOAL.md`
 
 ## Change discipline
 
