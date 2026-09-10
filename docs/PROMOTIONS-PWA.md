@@ -1,34 +1,41 @@
 # ENVAX — Promotions and PWA v1
 
-Status: future scope after the catalog/advisor flow is validated.
+Status: promotions are part of the product roadmap; PWA/push remains later scope.
 
 ## Goal
-Use known business type, product interests, and consent to send relevant promotions that bring customers back into the catalog.
+Let ENVAX send relevant promotions to customers without turning the catalog into ecommerce.
 
-## Principle
-Promotions must support the catalog relationship without turning ENVAX into ecommerce.
+## Administrator model
+Promotions are controlled from an administrator panel/module.
 
-## Potential inputs
-- Business type
-- Selected products
-- Categories/brands of interest
-- Previous requests
-- Explicit promotion consent
+An administrator can choose recipients such as:
+- one specific customer;
+- a business type, for example `Panadería`.
 
-## Potential flow
-`Known customer → Relevant promotion → Notification/message → Deep link to product/category → Mi selección → Advisor`
+Business type collected at landing is therefore a core segmentation field.
+
+## Customer promotion flow
+A customer can receive/open promotions, select one or multiple promotions of interest, and continue to an advisor.
+
+`Promotion(s) → Select one or more → Continue → WhatsApp or Email → Advisor`
+
+This mirrors the lightweight interest logic of favorites lists. A promotion selection is not an automatic purchase.
 
 ## Channels
-Possible channels include browser/PWA notifications, email, and WhatsApp according to consent and implementation strategy.
+Current commercial handoff channels:
+- WhatsApp;
+- Email.
+
+Future outbound promotion-delivery channels may also include browser/PWA notifications, subject to consent and technical validation.
 
 ## PWA
-A PWA is preferred over distributing an APK if an app-like experience is eventually needed. Installation must remain optional.
+A PWA is preferred over distributing an APK if an app-like experience is eventually useful. Installation must remain optional.
+
+## Consent and privacy
+Exact consent wording, opt-out behavior, frequency limits, legal/privacy implementation, and push-notification permissions remain pending detailed design.
 
 ## Platform caveat
-Browser push behavior differs by platform. In particular, iPhone/Safari has additional requirements compared with common Android/desktop flows. This must be validated before promising universal push delivery.
+Browser push behavior differs by platform; do not promise universal delivery until validated.
 
-## Consent
-Promotional communication requires an explicit, recorded user choice. Exact wording, unsubscribe behavior, retention, and legal/privacy implementation remain pending.
-
-## Not MVP
-Do not make promotions, PWA installation, or push notifications prerequisites for launching the initial catalog.
+## Scope rule
+Promotions must not delay the first catalog/favorites/order-request product version.
