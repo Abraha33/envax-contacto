@@ -1,36 +1,103 @@
 # CLAUDE.md
 
 ## Read first
-Before proposing product or implementation changes, read:
+
+Before proposing product or implementation changes, read in this order:
+
 1. `docs/PRODUCT-VISION.md`
 2. `docs/USER-FLOW.md`
 3. `docs/FAVORITES.md`
 4. `docs/SELLER-EXTENSION.md`
-5. `docs/ROADMAP.md`
-6. `docs/OPEN-QUESTIONS.md`
-7. `docs/ERP-INTEGRATION-PENDING.md`
+5. `docs/ERP-INTEGRATION-PENDING.md`
+6. `docs/construction-v1/README.md`
+7. `docs/construction-v1/OFFICIAL-CONSTRUCTION-PLAN.md`
+8. `docs/construction-v1/ARCHITECTURE.md`
+9. `docs/construction-v1/REPO-STRUCTURE.md`
+10. `docs/construction-v1/DATA-MODEL.md`
+11. `docs/construction-v1/API-CONTRACTS.md`
+12. `docs/construction-v1/PHASES-AND-GATES.md`
+13. `docs/construction-v1/BUILD-START-GOAL.md`
 
-## Canonical rules
-- ENVAX is a B2B digital catalog, not ecommerce.
-- Do not add public cart, checkout, payment, or marketplace behavior unless explicitly approved.
-- Multiple named favorites lists are canonical. The old single `Mi selección` concept is deprecated.
-- The customer can send an `Enviar pedido` action, but internally the first state is `solicitud` until seller processing updates it to `pedido`.
-- The experience must stay extremely simple for customers.
-- Initial entry asks only for business name + business type.
-- Anonymous-profile/login concept is approved; exact cross-device recovery technology is still pending architecture definition.
-- Favorites must work independently of Customer Portal mode.
-- Current approved Portal purpose is to let the customer view orders. Do not add invoices, accounting, private prices, checkout, or ecommerce without approval.
-- Public product fields currently approved: name, brand, reference. Product photo is not approved as public. Other fields are pending.
-- Promotions are administered from an admin module and may target a specific customer or a business type. Customer may select one/multiple promotions and continue through WhatsApp/email to an advisor.
+## Canonical product rules
+
+- ENVAX is one B2B digital catalog platform, not ecommerce.
+- Do not add public cart, checkout, payment, marketplace behavior, or cart totals unless explicitly approved later.
+- Entry must stay low-friction: business name + business type.
+- ENVAX creates/uses an anonymous identity before forcing a traditional account.
+- Anonymous cross-device recovery must not depend on IP; current construction baseline is an ENVAX-generated non-personal recovery credential.
+- Favorites are **multiple named lists**, not the old single `Mi selección` model.
+- Customer CTA may say `Enviar pedido`.
+- Internally the first commercial entity is a `solicitud`/`order_request`.
+- A validated seller/extension flow converts the solicitud into a real `pedido`.
+- Customer-visible lifecycle: `Solicitud enviada → En atención → Pedido confirmado → Completado`.
 - Seller/advisor assignment is decided by the system.
-- Seller extension uses explicit/manual seller-selected ERP content, not automatic full-screen scraping.
-- A successful extension operation automatically updates the corresponding record `solicitud → pedido` across ENVAX.
-- ERP/Wappsi API integration is **PENDING REAL VALIDATION IN GENERAL**. Never assume a capability is production-confirmed from documentation alone.
-- Do not commit confidential Wappsi documents, credentials, API keys, invoices, or real customer data to this public repository.
-- Do not invent ERP text formats. Use real copied samples before implementing extractor logic.
+- Customer portal is optional; its initial core value is viewing orders/status, not becoming an ERP or ecommerce account area.
+- Promotions are admin-managed and may target a specific customer or a business type.
+- A customer can select one or several promotions and continue to an advisor through WhatsApp/email.
+- Public product field/photo visibility is not fully frozen. Implement through a visibility policy; do not hard-code all product media as public.
+- The experience must remain extremely simple for customers.
+- ENVAX brand is visually primary; partner brands are secondary.
+
+## ERP/Wappsi rule
+
+ERP/Wappsi API integration is **PENDING REAL VALIDATION IN GENERAL**.
+
+Never assume an endpoint/capability is production-confirmed from documentation alone. Do not block core ENVAX construction on ERP uncertainty.
+
+No ERP secret may be placed in frontend, extension, Git or public documentation.
+
+## Seller extension rules
+
+- Manual user-selected ERP text only; no automatic full-screen scraping.
+- Collect 5–10 real sanitized copied-text examples before implementing parser logic.
+- Use deterministic parsing first.
+- Valid/unambiguous capture may follow the automatic fast path to update ENVAX.
+- Ambiguous/incomplete extraction must require review and must not write silently.
+- Extension writes only through ENVAX API, never directly to D1.
+- Conversion must be idempotent and auditable.
+
+## Construction architecture
+
+Baseline:
+- TypeScript end-to-end;
+- pnpm workspaces;
+- React + TypeScript + Vite customer/admin apps;
+- Cloudflare Workers REST API;
+- D1 relational database;
+- R2 assets;
+- Queues only for async/retryable jobs;
+- Turnstile selectively;
+- Cloudflare Access preferred for initial internal admin perimeter;
+- modular monolith, not microservices.
+
+If proposing a different architecture, document the concrete measured reason before changing this baseline.
 
 ## Deployment discipline
-Landing, catalog, extension, Workers, and docs must remain separable. Cloudflare deployment for one component must not accidentally publish unrelated code/assets.
+
+Landing, customer app, admin, API, seller extension and QR Worker must remain independently deployable.
+
+Do not destructively move or rewrite the current production landing/QR structure before staging parity and rollback are proven.
+
+Do not commit confidential Wappsi documents, credentials, API keys, invoices, real customer data, `.dev.vars`, or provider secrets to this public repository.
+
+## Build discipline
+
+- Work on branches; do not implement directly on `main`.
+- Build one phase at a time using `docs/construction-v1/PHASES-AND-GATES.md`.
+- Do not implement customer-facing visual UI before the relevant design is approved.
+- Every database change uses versioned migrations.
+- Every write endpoint defines validation, authorization, idempotency where needed, and audit behavior.
+- Run lint, typecheck, tests and build before declaring a phase complete.
+- Report the gate status as PASS or BLOCKED with evidence.
+
+## First implementation task
+
+If construction has not started yet, use exactly:
+
+`docs/construction-v1/BUILD-START-GOAL.md`
+
+and implement Phase 1 Foundation only.
 
 ## Change discipline
-If a proposed change conflicts with these rules, flag it explicitly instead of silently changing the product definition.
+
+If a proposed change conflicts with these rules, flag it explicitly instead of silently changing the product definition or architecture.
