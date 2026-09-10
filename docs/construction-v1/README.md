@@ -1,12 +1,29 @@
 # ENVAX — Construction V1
 
-Status: **official construction plan, ready for implementation review**.
+Status: **official construction plan, Phase 0 ready to start**.
 
-Branch: `docs/official-construction-plan-v1`
+Planning branch: `docs/official-construction-plan-v1`
+
+Current execution branch: `phase/0-product-build-readiness`
 
 This directory converts the approved ENVAX product concept into a buildable technical plan. It does **not** assume that Wappsi/ERP integration works; that track remains isolated and pending real validation.
 
-## Read order
+## Start now — Phase 0
+
+Read:
+
+1. `phase-0/START-HERE.md`
+2. `phase-0/PHASE-0-EXECUTION-GOAL.md`
+3. `phase-0/PHASE-0-CHECKLIST.md`
+4. `phase-0/PHASE-0-DECISION-REGISTER.md`
+5. `phase-0/PHASE-0-RISK-REGISTER.md`
+6. `phase-0/PHASE-0-EVIDENCE.md`
+7. `phase-0/PHASE-0-GATE.md`
+8. `phase-0/PHASE-0-HANDOFF.md`
+
+Phase 0 must finish with `PHASE 0: PASS` or `PHASE 0: BLOCKED`. Do not start Foundation code inside the Phase 0 branch.
+
+## Full construction read order
 
 1. `OFFICIAL-CONSTRUCTION-PLAN.md`
 2. `ARCHITECTURE.md`
@@ -37,7 +54,7 @@ ENVAX will be built as one product with independently deployable components:
 - existing QR Worker kept independent;
 - provider-neutral adapters for email, WhatsApp and future ERP integration.
 
-Frontend baseline: **React + TypeScript + Vite**, deployed using Cloudflare Workers Static Assets / Cloudflare Vite integration.
+Frontend baseline: **React + TypeScript + Vite**.
 
 Backend baseline: **TypeScript Cloudflare Worker**, modular routing, shared runtime validation, no direct database access from any browser app or extension.
 
@@ -55,7 +72,7 @@ The customer CTA may say **Enviar pedido**. Internally ENVAX first creates a `so
 
 ## Non-blocking parallel work
 
-Visual UX/UI can continue in a separate design chat while Foundation, database, API contracts and catalog ingestion are built. Customer-facing UI implementation must not invent unapproved visual design; it waits for the relevant Design Ready gate.
+Visual UX/UI can continue separately while Phase 0 and Foundation planning proceed. Customer-facing UI implementation must not invent unapproved visual design; it waits for the relevant Design Ready gate.
 
 ## ERP rule
 
