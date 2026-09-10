@@ -1,12 +1,31 @@
 # ENVAX — Construction V1
 
-Status: **official construction plan, Phase 0 ready to start**.
+Status: **official construction plan, all phases documented; Phase 0 ready to start**.
 
 Planning branch: `docs/official-construction-plan-v1`
 
 Current execution branch: `phase/0-product-build-readiness`
 
 This directory converts the approved ENVAX product concept into a buildable technical plan. It does **not** assume that Wappsi/ERP integration works; that track remains isolated and pending real validation.
+
+## All phases
+
+Read `ALL-PHASES-EXECUTION.md` for the canonical Phase 0–9 execution map, planned branches, gates and sequencing.
+
+Dedicated execution packages now exist for every phase:
+
+- `phase-0/` — Product / Design / Build Readiness
+- `phase-1/` — Foundation
+- `phase-2/` — Catalog Data
+- `phase-3/` — Customer Catalog UI
+- `phase-4/` — Anonymous Identity + Favorites
+- `phase-5/` — Pedido Request + Advisor — Commercial MVP
+- `phase-6/` — Seller Browser Extension
+- `phase-7/` — Customer Portal
+- `phase-8/` — Admin + Promotions
+- `phase-9/` — Production Hardening
+
+Each Phase 1–9 folder contains a scope README, an autonomous execution goal, and an evidence-based gate checklist. Phase 0 contains the expanded readiness/decision/risk/evidence/handoff package.
 
 ## Start now — Phase 0
 
@@ -32,11 +51,12 @@ Phase 0 must finish with `PHASE 0: PASS` or `PHASE 0: BLOCKED`. Do not start Fou
 5. `DATA-MODEL.md`
 6. `API-CONTRACTS.md`
 7. `PHASES-AND-GATES.md`
-8. `TESTING-SECURITY-OPERATIONS.md`
-9. `CLOUDFLARE-DEPLOYMENT.md`
-10. `ERP-EXTENSION-TRACK.md`
-11. `BUILD-START-GOAL.md`
-12. `HANDOFF.md`
+8. `ALL-PHASES-EXECUTION.md`
+9. `TESTING-SECURITY-OPERATIONS.md`
+10. `CLOUDFLARE-DEPLOYMENT.md`
+11. `ERP-EXTENSION-TRACK.md`
+12. `BUILD-START-GOAL.md`
+13. `HANDOFF.md`
 
 Also read the canonical product documents in `docs/`, especially `PRODUCT-VISION.md`, `USER-FLOW.md`, `FAVORITES.md`, `SCREEN-MAP.md`, `ROADMAP.md`, and `ERP-INTEGRATION-PENDING.md`.
 
