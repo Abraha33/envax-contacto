@@ -3,54 +3,54 @@
 Status: current definition priority.
 
 ## Purpose
-The extension is a temporary/internal bridge between the ERP workflow and ENVAX while direct ERP/API integration is unresolved. It must not replace the ERP.
+The extension is an internal bridge between the seller's ERP workflow and ENVAX while direct ERP/API integration is unresolved. It must not replace the ERP.
 
 ## Core rule
-**Manual text selection, not automatic full-screen scraping.**
+**Manual text selection / explicit seller action, not automatic full-screen scraping.**
 
-The seller chooses the exact text/context to capture from the ERP. The extension processes only that selected content.
+The seller chooses the relevant ERP content and invokes the extension.
+
+## Canonical operational effect
+When the extension successfully processes the relevant request/order information, ENVAX automatically updates the corresponding record from:
+
+`solicitud → pedido`
+
+The change must propagate consistently across ENVAX.
+
+Seller/advisor assignment is determined by the system, not by the customer.
 
 ## Proposed logical flow
-1. Seller opens the relevant ERP quotation/order/invoice/customer view.
-2. Seller manually selects the relevant text.
-3. Seller opens the ENVAX extension.
-4. Seller triggers `Capturar selección`.
-5. Extension parses candidate fields.
-6. Extension shows what it extracted.
-7. Seller corrects/validates if necessary.
-8. Extension sends the normalized result to ENVAX and/or the internal Google Sheet.
-9. Success/failure is shown clearly.
+1. Seller opens the relevant ERP view.
+2. Seller selects/copies the relevant information.
+3. Seller opens or invokes the ENVAX extension.
+4. Extension parses the selected content.
+5. Extension matches the correct ENVAX customer/request.
+6. If required data is valid, it writes the normalized result.
+7. ENVAX changes `solicitud` to `pedido` automatically.
+8. Success/failure is shown clearly.
 
-## Candidate fields to extract
+## Candidate fields
 Exact schema is not final. Likely candidates:
 - customer/business identifier;
-- document identifier/type;
+- request/order/document identifier;
 - product code/SKU/reference;
 - product name;
 - quantity;
-- unit price;
-- totals or document data when required;
+- price/document values when needed;
 - date/status when present.
 
-## Pending critical decision
-Should the extension always show a confirmation/review step before it updates ENVAX/Sheet, or can it write automatically when parsing confidence is high? Current status: **PENDING**.
+## Validation behavior
+A mandatory confirmation screen is no longer a product requirement. The extension may update automatically when the selected data is valid and confidently matched. Ambiguous, incomplete, or unmatched data must stop and ask for correction instead of guessing.
 
 ## Data needed before implementation
-Collect 5–10 real examples of copied ERP text covering, where possible:
-- quotation;
-- order;
-- invoice;
-- customer block;
-- line items with product, quantity, and price.
+Collect 5–10 real examples of copied ERP text covering the actual seller workflow. Do not design the parser from invented examples.
 
-Do not design the parser from invented examples.
-
-## Pilot rule
-Validate whether the real operational volume justifies an extension. A manual Google Sheet workflow may be sufficient for the first pilot.
+## ERP/API status
+Direct Wappsi/API integration remains completely pending real validation. The extension must be able to serve as the operational bridge without assuming the API will be available.
 
 ## Safety
 - No secrets embedded in extension code.
 - Minimum browser permissions.
 - No automatic extraction of unrelated page content.
-- Clear user confirmation on ambiguous or incomplete data.
-- Log failures without exposing customer-sensitive information unnecessarily.
+- Never guess a customer/request match.
+- Log failures without exposing unnecessary customer-sensitive information.
