@@ -1,45 +1,52 @@
-# ENVAX — Advisor Flow v1
+# ENVAX — Advisor / Order Flow v1
 
 ## Goal
-Convert product interest into a fast human commercial conversation.
+Convert product or promotion interest into a fast human-assisted order flow.
 
-## With selected products
-`Mi selección → Cotizar estos productos → WhatsApp or Email → Send → Advisor receives request`
+## With favorites
+`Favorites list → Enviar pedido → WhatsApp or Email → Solicitud enviada → Advisor`
 
 Advisor context should include at minimum:
 - business name;
 - business type;
-- contact channel/details;
-- selected products;
+- contact channel/details when provided;
+- selected products or promotions;
 - timestamp;
-- optional source/context if useful.
+- optional customer note.
 
-## Without selected products
+## Without favorites
 Do not block the customer.
 
-`Hablar con un asesor → Suggest selecting products → Select products OR continue directly → Advisor`
+`Hablar con un asesor → Continue directly OR choose products/promotions → WhatsApp/Email → Advisor`
 
 ## Customer confirmation
 Keep it short.
 
 ### WhatsApp concept
 - ENVAX received the request.
-- List of products of interest.
+- Products/promotions of interest.
 - `En breve uno de nuestros asesores te atenderá.`
-- Link to return to the catalog.
+- Link back to the catalog.
 
 ### Email concept
 Subject: `Recibimos tu solicitud ENVAX`
 
 Body:
-- Products of interest.
+- Products/promotions of interest.
 - Advisor-attention-soon message.
 - `Ver catálogo` link/button.
 
-No rich product cards or unnecessary long copy are required.
+## Request vs order
+Customer CTA may say `Enviar pedido`, but internally the first state is a **solicitud de pedido**.
 
-## Internal commercial states
-Provisional seller tracking:
-`Nuevo → Contactado → Cotizado → Ganado / Perdido`
+When the seller successfully processes it through the approved extension/internal workflow, ENVAX automatically updates the record from `solicitud` to `pedido` across the system.
 
-Exact assignment, SLA, CRM destination, and automation remain pending.
+## Customer-visible states
+Current conceptual path:
+`Solicitud enviada → En atención → Pedido confirmado → Completado`
+
+## Seller assignment
+Seller/advisor assignment is determined by the system. The customer does not choose a seller.
+
+## ERP
+Direct ERP/API behavior remains pending real validation and must not be assumed.
