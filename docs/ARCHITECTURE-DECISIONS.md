@@ -2,6 +2,7 @@
 
 ## Product boundaries
 - ENVAX is a B2B digital catalog first.
+- ENVAX represents a general distributor, not a catalog tied to one exclusive business type such as bakeries or restaurants.
 - Public experience is not ecommerce.
 - No public cart, checkout, online payment, or marketplace behavior.
 - Named favorites lists replace the old single `Mi selección` concept.
@@ -51,6 +52,32 @@ Do not add invoices, accounting, private prices, checkout, or ecommerce behavior
 - Anonymous favorites may exist only as local browser/device state and are not guaranteed to survive local storage loss.
 - Persistent named favorites lists require a logged-in/identified customer.
 - Identified customers can create multiple named favorites lists and reuse them later as the basis for order requests.
+- Lists belong to the individual customer account; V1 does not support collaborative/shared editing between customer accounts.
+- Sharing, copying, importing or adding received lists through WhatsApp or similar flows is outside V1 and is reserved for future evaluation after the core product is complete.
+
+## Catalog domain
+ENVAX must support the breadth of a general distributor without tying catalog structure to one customer/business type.
+
+Canonical concepts:
+- `Category`: flexible classification/navigation node.
+- `Product`: main commercial product identity.
+- `Variant/Presentation`: concrete version/presentation of a product.
+- `Brand`: commercial brand associated primarily with the product.
+- `Attribute`: descriptive characteristic such as capacity, material, dimensions or color.
+- `Segment/Use`: optional discovery dimension indicating where or for whom a product may be useful; it does not own the product.
+- `Reference/SKU`: identifier associated with the concrete sellable/reference presentation when applicable.
+- `Media`: images or other media associated with a product and, when needed, a variant.
+
+Approved catalog rules:
+- Categories are hierarchical and may have as many levels as the catalog needs; ENVAX does not require a rigid `Category → Family → Product` depth.
+- A product may belong to more than one category.
+- Customer/business type does not define or own a product.
+- Business type/segment may be used as an optional discovery or merchandising dimension.
+- Product and variant are separate concepts.
+- A variant may have its own reference/SKU and its own media.
+- A product may have general media shared by its variants.
+- Product attributes may vary according to product type/category instead of forcing the same attributes on every product.
+- Exact product fields, attribute schema, SKU/reference policy and source-of-truth synchronization are intentionally deferred to later data/integration phases.
 
 ## Orders
 Canonical internal transition:
