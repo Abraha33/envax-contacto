@@ -53,7 +53,7 @@ El módulo cubre conceptualmente:
 - Qué imágenes o componentes utilizan.
 - Qué búsquedas realizan.
 - Qué filtros usan.
-- Qué agregan o eliminan de listas.
+- Qué agregan o eliminan de listas cuando el contexto lo permita.
 - Qué caminos siguen dentro del sitio.
 
 ### 3. Experiencia de usuario
@@ -81,19 +81,27 @@ También deben poder analizarse recorridos alternativos, por ejemplo:
 
 `Directo → catálogo → lista → solicitud → pedido`
 
-## Sesión anónima
+## Visitante anónimo y persistencia
 
-Para explorar no se exige registro tradicional.
+Para explorar el catálogo no se exige login.
 
-El sistema puede reconocer una sesión o perfil anónimo para relacionar acciones del mismo visitante sin necesitar conocer inmediatamente su identidad real.
+Un visitante anónimo puede ser reconocido técnicamente para fines de analítica o para mantener estado local temporal, pero eso no lo convierte en cliente registrado.
 
-Ejemplo conceptual:
+Reglas canónicas:
+- el visitante anónimo puede ver el catálogo público;
+- no puede acceder al área privada/portal del cliente;
+- no puede acceder a promociones exclusivas para clientes registrados;
+- sus favoritos u otro estado de conveniencia no se persisten como datos de negocio en la base de datos de ENVAX;
+- ese estado puede existir solo localmente en navegador/dispositivo y puede perderse si ese almacenamiento se borra o deja de estar disponible;
+- la persistencia de datos de negocio en la base de datos requiere login/identificación de cliente.
 
-`visitante anónimo → landing → catálogo → producto → lista → WhatsApp`
+Separación importante:
+- negocio: sin login no se guarda en la base de datos como información propia de un cliente;
+- analítica: sí se pueden registrar eventos anónimos para entender uso, bajo las reglas de privacidad, consentimiento y retención que definiremos después.
 
-Si posteriormente la persona se identifica como cliente, la política exacta para relacionar el historial anónimo con la identidad queda:
+No se asume automáticamente que el historial analítico anónimo se una después a la identidad real del cliente.
 
-🟡 PENDIENTE
+🟡 PENDIENTE: política exacta para cualquier vinculación futura entre historial anónimo e identidad autenticada.
 
 ## QR y campañas físicas
 
@@ -155,9 +163,9 @@ Dominio comercial:
 
 Telemetría/analítica:
 
-`Visitante/Sesión · Origen · Campaña · Evento · Recorrido · Conversión`
+`Visitante/Sesión técnica · Origen · Campaña · Evento · Recorrido · Conversión`
 
-Un evento de analítica observa lo que ocurre; no reemplaza una entidad de negocio.
+Un evento de analítica observa lo que ocurre; no reemplaza una entidad de negocio ni crea por sí solo una cuenta de cliente.
 
 ## Privacidad y seguridad
 
@@ -188,9 +196,12 @@ La selección concreta se hará después de definir el mapa de métricas y los r
 - ✅ Analítica será un módulo/capacidad formal de ENVAX.
 - ✅ Cubrirá el sitio completo, no solo la landing.
 - ✅ Debe permitir diferenciar QR/campañas de otros orígenes.
-- ✅ Debe seguir recorridos anónimos dentro de ENVAX.
+- ✅ Puede medir recorridos anónimos sin convertir al visitante en cliente.
+- ✅ Los datos de negocio del visitante anónimo no se persisten en la base de datos de ENVAX.
+- ✅ Favoritos anónimos, si existen, son solo locales y pueden perderse.
+- ✅ Login/identificación es la frontera para persistir datos de cliente en la base de datos.
 - ✅ Debe medir comportamiento, UX, rendimiento y conversión comercial.
-- ✅ Debe poder conectar, conceptualmente, adquisición con solicitud y pedido.
+- ✅ Debe poder conectar, conceptualmente, adquisición con solicitud y pedido cuando exista identidad y base legal/técnica suficiente.
 - ✅ No requiere rediseñar la interfaz para existir.
 - 🟡 Herramienta o combinación de herramientas: PENDIENTE.
 - 🟡 Lista definitiva de eventos y métricas V1: PENDIENTE.
