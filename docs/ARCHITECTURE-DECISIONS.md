@@ -21,26 +21,36 @@
 - Tablet: 3–4.
 - Mobile: 2.
 
-## Customer identity
-The initial experience should avoid traditional registration friction.
+## Customer identity and anonymous access
+Approved canonical rules:
+- Anyone can browse the public catalog without login.
+- Anonymous visitors cannot access the customer area / portal.
+- Anonymous visitors cannot access customer-only promotions.
+- Anonymous visitors do not have business data persisted in the ENVAX database.
+- Anonymous favorites or similar convenience state may exist only locally on the device/browser.
+- Local anonymous state may be lost if browser/device storage is cleared, reset or unavailable.
+- Persistent favorites, customer benefits, orders and other private capabilities require an identified/logged-in customer.
+- Login/customer identification is the boundary that allows ENVAX to persist customer-owned business data in the database.
+- Exact login/authentication technology remains pending architecture definition.
 
-Approved concept:
-- collect only business name + business type at entry;
-- create/maintain an anonymous customer profile/session concept;
-- favorites should work without Portal activation;
-- cross-device anonymous recovery/synchronization is required conceptually;
-- exact identity technology is still pending architecture definition.
+Important separation:
+- anonymous business persistence: not allowed;
+- anonymous analytics/telemetry: allowed conceptually, under the analytics privacy and retention rules to be defined later.
 
-## Optional Customer Portal
-Portal activation requires additional verified customer data.
+## Customer area / portal capabilities
+Customer identification/login enables private capabilities inside the same ENVAX experience.
 
-Current approved portal purpose:
+Current approved private capability:
 - view customer orders.
+
+Customer-only capabilities also include access to promotions when applicable.
 
 Do not add invoices, accounting, private prices, checkout, or ecommerce behavior without explicit approval.
 
 ## Favorites
-Customers can create multiple named favorites lists and reuse them later as the basis for order requests.
+- Anonymous favorites may exist only as local browser/device state and are not guaranteed to survive local storage loss.
+- Persistent named favorites lists require a logged-in/identified customer.
+- Identified customers can create multiple named favorites lists and reuse them later as the basis for order requests.
 
 ## Orders
 Canonical internal transition:
@@ -54,6 +64,7 @@ The seller extension/internal workflow performs this transition automatically af
 - Ambiguous or unmatched data must fail safely instead of guessing.
 
 ## Promotions
+- Promotions are for registered/identified customers, not anonymous visitors.
 - Managed from an administrator panel/module.
 - Admin can target a specific customer or business type.
 - Customer can select one or multiple promotions and continue through WhatsApp/email to an advisor.
