@@ -31,10 +31,12 @@ Favorites should persist for returning customers.
 
 The product concept includes an anonymous profile/login so customers are not forced into a traditional account before saving lists. Same-device persistence is expected. Cross-device recovery/synchronization is required conceptually but the exact technical solution remains pending architecture definition.
 
-## Relation to Portal
+## Relation to Customer Portal
 Favorites must be usable independently of Customer Portal mode.
 
-Portal activation may later identify/verify the customer more fully, but it must not be required just to create or keep favorites.
+The **Customer Portal is part of V1**, but Portal activation/identification is not required just to create or keep favorites. Portal mode exists for identified customers to access approved private functionality such as `Mis pedidos` and order detail/status.
+
+Do not treat favorites as a Portal-only feature.
 
 ## Order handoff
 A favorites list can be used to prepare an order request:
