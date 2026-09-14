@@ -1,100 +1,139 @@
-# ENVAX — Screen Map v1
+# ENVAX — Screen Map V1
 
-This document defines the inventory of screens/states to design. It is not the final visual design.
+**Status:** CLOSED / APPROVED  
+**Phase:** Frontend Phase 3 — Screen Map V1  
+**Date:** 2026-09-14
 
-## Public / catalog
-1. Landing
-2. Catalog cover
-3. Exploration choice: category / brand
-4. Category index
-5. Brand index
-6. Category page
-7. Brand page
-8. Family page
-9. Product listing
-10. Product detail
-11. Variant / presentation state
-12. Search
-13. Search results
-14. Filters
-15. No-results state
-16. Loading state
-17. Error state
-18. 404
+This document is the canonical V1 inventory of customer-facing screens and supporting UI states. It is not the final visual design.
 
-## Anonymous profile / persistence
-19. Anonymous-profile creation/confirmation state if UX requires one
-20. Anonymous-profile recovery / cross-device state — technical method pending
-21. Returning-customer restored state
+The detailed matrix is in `SCREEN-MATRIX-V1.md`. The reproducible Mermaid source is in `SCREEN-MAP-V1.mmd`.
 
-## Favorites lists
-22. Favorites home / lists index
-23. Empty favorites state
-24. Create named favorites list
-25. Rename list
-26. Favorites list with products
-27. Add product to existing/new list
-28. Product-added confirmation
-29. Remove product
-30. Add more products
-31. Prepare/send order from favorites
+## 1. Main V1 screens
 
-## Order request / advisor
-32. Send-order summary
-33. Choose WhatsApp or Email
-34. Optional short note
-35. Confirm send
-36. `Solicitud enviada` confirmation
-37. `En atención` state
-38. `Pedido confirmado` state
-39. `Completado` state
-40. Contact advisor without favorites
-41. WhatsApp confirmation message
-42. Email confirmation message
+### Entry
+1. `S01` — Landing
 
-## Customer Portal — V1
-43. Portal activation / identification
-44. Portal access/login state
-45. `Mis pedidos`
-46. Order detail/status
+### Public catalog
+2. `S02` — Catalog home
+3. `S03` — Categories
+4. `S04` — Category / Family
+5. `S05` — Brands
+6. `S06` — Brand
+7. `S07` — Search / Results
+8. `S08` — Product detail
 
-Current approved V1 portal purpose is order visibility only. Do not add invoices, accounting, private prices, checkout, payments, or ecommerce behavior without explicit approval.
+### Lists and commercial intent
+9. `S09` — My lists
+10. `S10` — List detail
+11. `S11` — Prepare request
+12. `S12` — Send request
+13. `S13` — Request sent
 
-## Promotions — post-core V1 / V1.2 direction
-47. Promotions feed/list
-48. Promotion detail
-49. Select one/multiple promotions
-50. Promotion selection summary
-51. Continue via WhatsApp/Email
-52. Promotion request confirmation
+### Identity and Customer Portal
+14. `S14` — Account / Identification
+15. `S15` — My orders
+16. `S16` — Order detail
 
-## Future notification/PWA states
-53. PWA install prompt/state if implemented
-54. Notification permission/settings state
-55. Deep-linked promotion from notification
+### Human assistance
+17. `S17` — Advisor contact
 
-## Internal administrator
-56. Admin promotions list
-57. Create/edit promotion
-58. Choose recipients
-59. Target specific customer
-60. Target business type
-61. Send/publish confirmation
+## 2. Auxiliary V1 views/states
 
-## Internal seller extension
-62. Extension idle state
-63. Selected-text capture state
-64. Parsing/validation state
-65. Ambiguous/missing-fields state
-66. Customer/request matching state
-67. Automatic successful write state
-68. `solicitud → pedido` success state
-69. Failure / retry state
+- `A01` — Create list
+- `A02` — Choose list
+- `A03` — Product added
+- `A04` — Rename list
+- `A05` — Confirm deletion
+- `A06` — Empty list
+- `A07` — No results
+- `A08` — No orders
+- `A09` — Loading
+- `A10` — Generic error
+- `A11` — Content unavailable
+- `A12` — Offline
+- `A13` — Session expired
+- `A14` — Success feedback
+- `A15` — Unsaved changes
 
-## Responsive baseline
-- Desktop large: test 6 product columns.
-- Desktop standard: test 5–6 columns.
-- Tablet: test 3–4 columns.
-- Mobile: 2 columns.
+Auxiliary elements may be implemented as modals, bottom sheets, drawers, toast/inline feedback, skeletons, or page-level states depending on responsive context. They are not automatically separate routes.
 
-The density rule is not a fixed grid count: show the greatest useful variety without losing product recognition or clarity.
+## 3. Core V1 flows
+
+### Discovery
+`Landing → Catalog → Category / Brand / Search → Product`
+
+### Lists
+`Product → Choose/create list → Product added → List detail`
+
+### Request
+`List detail OR Product → Prepare request → Send request → WhatsApp/Email → Request sent`
+
+### Advisor
+The advisor must remain reachable from relevant points even without favorites or a prepared request.
+
+### Portal
+`Account/Identification → My orders → Order detail → Advisor`
+
+The public catalog remains usable without Portal activation.
+
+## 4. Screen reuse rule
+
+The 17 functional screens do not imply 17 independent frontend architectures. V1 is expected to reuse approximately 13 structural templates, especially for taxonomy indexes, product grids, request steps, and shared states.
+
+## 5. Responsive rule
+
+All core V1 customer flows must support:
+- mobile;
+- tablet;
+- desktop.
+
+No core V1 customer screen is desktop-only.
+
+Exact visual grid counts, typography, colors, spacing, shadows, image treatment, and responsive composition belong to later design phases and are not frozen here.
+
+## 6. Explicitly outside this Phase 3 V1 map
+
+Do not mix the core screen map with later/future product areas such as:
+- promotions and promotion administration;
+- PWA/install prompts and push notifications;
+- richer Portal functionality;
+- invoices, accounting, private prices, payments, checkout;
+- ERP integration screens;
+- seller browser extension UI;
+- internal administrator UI;
+- sharing products/lists;
+- deeper automation.
+
+Those items may be documented in their own later-scope maps. They do not belong to the frozen customer-facing V1 screen inventory unless product scope is explicitly changed.
+
+## 7. Phase 3 audit results
+
+The final screen-map audit confirmed:
+- every main V1 screen has an entry and meaningful exit;
+- discovery converges on product detail;
+- saved-product flow includes explicit choose/create-list and success feedback;
+- requests can start from a list or directly from product context;
+- advisor contact is available independently of favorites;
+- request contact and general advisor contact are separated conceptually;
+- Customer Portal is connected to the public experience but is not required for catalog exploration;
+- Portal-only order screens require identified-customer access;
+- loading, empty, error, offline, session-expired, unavailable-content, success, and unsaved-change states are represented;
+- users have recovery paths back to the catalog;
+- no additional main V1 screen was required by the audit.
+
+## 8. Freeze rule
+
+**Frontend Phase 3 is CLOSED.**
+
+The canonical Phase 3 artifacts are:
+- `SCREEN-MAP.md`
+- `SCREEN-MATRIX-V1.md`
+- `SCREEN-MAP-V1.mmd`
+
+Any later addition/removal of a V1 screen or material change in screen responsibility must update these artifacts before downstream wireframes or implementation are considered canonical.
+
+## Next phase
+
+Proceed to **Frontend Phase 4 — Wireframes / Structural Prototyping**.
+
+Phase 4 will decide the layout and information placement of every approved screen before visual styling is finalized.
