@@ -1,0 +1,141 @@
+flowchart TD
+
+  %% ENTRY
+  S01["S01 · Landing"] --> S02["S02 · Inicio del catálogo"]
+  S01 -. "Cliente existente" .-> S14["S14 · Mi cuenta / identificación"]
+
+  %% DISCOVERY
+  S02 --> S03["S03 · Categorías"]
+  S02 --> S05["S05 · Marcas"]
+  S02 --> S07["S07 · Búsqueda / resultados"]
+  S02 --> S09["S09 · Mis listas"]
+  S02 --> S14
+  S02 -. "Cliente identificado" .-> S15["S15 · Mis pedidos"]
+  S02 --> S17["S17 · Contacto con asesor"]
+
+  S03 --> S04["S04 · Categoría / Familia"]
+  S05 --> S06["S06 · Marca"]
+  S04 --> S08["S08 · Detalle de producto"]
+  S06 --> S08
+  S07 --> S08
+
+  %% LISTS
+  S08 --> A02{{"A02 · Elegir lista"}}
+  A02 -->|"Lista existente"| A03{{"A03 · Producto agregado"}}
+  A02 -->|"Nueva lista"| A01{{"A01 · Crear lista"}}
+  A01 --> A03
+  A03 -->|"Seguir explorando"| S08
+  A03 -->|"Ver lista"| S10["S10 · Detalle de lista"]
+  S09 --> S10
+  S09 --> A01
+  S10 --> A04{{"A04 · Renombrar lista"}}
+  S10 --> A05{{"A05 · Confirmar eliminación"}}
+  S10 --> S11["S11 · Preparar solicitud"]
+  S10 -->|"Agregar más"| S02
+
+  %% DIRECT PRODUCT REQUEST
+  S08 -. "Solicitar este producto" .-> S11
+
+  %% REQUEST
+  S11 --> S12["S12 · Enviar solicitud"]
+  S11 -->|"Volver"| S10
+  S12 -->|"Volver"| S11
+  S12 --> WA_REQ["WhatsApp · solicitud"]
+  S12 --> EM_REQ["Correo · solicitud"]
+  WA_REQ --> S13["S13 · Solicitud enviada"]
+  EM_REQ --> S13
+  S13 --> S02
+  S13 -->|"Ver seguimiento si ya está identificado"| S15
+  S13 -->|"Activar / acceder al Portal"| S14
+  S13 --> S17
+
+  %% PORTAL
+  S14 --> S15
+  S14 -->|"Continuar catálogo"| S02
+  S15 --> S16["S16 · Detalle de pedido"]
+  S16 --> S15
+  S16 --> S17
+  S15 --> S02
+
+  %% ADVISOR
+  S08 -. "Hablar con asesor" .-> S17
+  S07 -. "Sin resultados / ayuda" .-> S17
+  S10 -. "Ayuda" .-> S17
+  S11 -. "Ayuda" .-> S17
+  S16 -. "Ayuda" .-> S17
+  S17 --> WA_ADV["WhatsApp · asesor"]
+  S17 --> EM_ADV["Correo · asesor"]
+  S17 -->|"Volver"| S02
+
+  %% GLOBAL RETURNS
+  S03 -. "Inicio" .-> S02
+  S04 -. "Inicio" .-> S02
+  S05 -. "Inicio" .-> S02
+  S06 -. "Inicio" .-> S02
+  S07 -. "Inicio" .-> S02
+  S08 -. "Inicio" .-> S02
+  S09 -. "Inicio" .-> S02
+  S10 -. "Inicio" .-> S02
+
+  %% AUXILIARY STATES
+  A06{{"A06 · Lista vacía"}}
+  A07{{"A07 · Sin resultados"}}
+  A08{{"A08 · Sin pedidos"}}
+  A09{{"A09 · Cargando"}}
+  A10{{"A10 · Error genérico"}}
+  A11{{"A11 · Contenido no disponible"}}
+  A12{{"A12 · Sin conexión · transversal"}}
+  A13{{"A13 · Sesión expirada"}}
+  A14{{"A14 · Acción exitosa"}}
+  A15{{"A15 · Cambios sin guardar"}}
+
+  S09 -.-> A06
+  S10 -.-> A06
+  S04 -.-> A07
+  S06 -.-> A07
+  S07 -.-> A07
+  S15 -.-> A08
+
+  S02 -.-> A09
+  S04 -.-> A09
+  S06 -.-> A09
+  S07 -.-> A09
+  S09 -.-> A09
+  S15 -.-> A09
+
+  S02 -.-> A10
+  S04 -.-> A10
+  S06 -.-> A10
+  S07 -.-> A10
+  S09 -.-> A10
+  S15 -.-> A10
+
+  S08 -.-> A11
+  S04 -.-> A11
+  S06 -.-> A11
+
+  S02 -. "Red no disponible" .-> A12
+  S07 -. "Red no disponible" .-> A12
+  S09 -. "Red no disponible" .-> A12
+  S12 -. "Red no disponible" .-> A12
+  S15 -. "Red no disponible" .-> A12
+
+  S14 -.-> A13
+  S15 -.-> A13
+  S16 -.-> A13
+
+  S08 -.-> A14
+  S09 -.-> A14
+  S10 -.-> A14
+  S12 -.-> A14
+
+  S11 -.-> A15
+  S12 -.-> A15
+
+  classDef page fill:#fff,stroke:#2b3a55,stroke-width:1.5px,color:#111;
+  classDef aux fill:#f7f7f7,stroke:#777,stroke-dasharray:4 3,color:#222;
+  classDef external fill:#eef4ff,stroke:#5a78a8,color:#111;
+
+  class S01,S02,S03,S04,S05,S06,S07,S08,S09,S10,S11,S12,S13,S14,S15,S16,S17 page;
+  class A01,A02,A03,A04,A05,A06,A07,A08,A09,A10,A11,A12,A13,A14,A15 aux;
+  class WA_REQ,EM_REQ,WA_ADV,EM_ADV external;
