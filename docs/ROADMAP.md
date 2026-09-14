@@ -4,9 +4,8 @@
 - Consolidate product vision
 - Consolidate user flow
 - Close named favorites-list concept
-- Define anonymous-profile + optional Portal concept
+- Define anonymous-profile + Customer Portal concept
 - Define request-to-order state model
-- Define promotion targeting concept
 - Keep ERP/API status explicitly pending until validated
 
 ## Phase 1 — Seller bridge definition
@@ -17,7 +16,7 @@
 - Define failure/ambiguity handling
 - Define Sheet columns/workflow if Sheet remains useful
 
-## Phase 2 — V1 catalog + order-request MVP
+## Phase 2 — V1 catalog + order-request + Customer Portal
 - Landing
 - Catalog cover/index
 - Category/brand exploration
@@ -29,6 +28,11 @@
 - Direct advisor contact without favorites
 - WhatsApp/email handoff
 - Simple customer-visible request status
+- Customer Portal activation/identification
+- Customer Portal access/login
+- `Mis pedidos`
+- Order detail/status
+- Keep favorites usable independently of Portal
 - Basic analytics
 - Responsive/accessibility testing
 
@@ -37,14 +41,14 @@
 - Measure catalog → favorites → order-request conversion
 - Validate whether customers understand named favorites lists
 - Validate advisor handoff quality
+- Validate Customer Portal access and order visibility
 - Validate seller extension workflow
 - Fix friction before major expansion
 
-## Phase 4 — V1.1 returning customer / Portal
+## Phase 4 — V1.1 returning customer improvements
 - Cross-device anonymous-profile recovery/synchronization
-- Optional Portal activation with verified customer data
-- `Mis pedidos`
-- Order detail/status
+- Improve Portal identity/recovery if needed
+- Improve returning-customer experience
 - Keep favorites usable independently of Portal
 
 ## Phase 5 — V1.2 promotions
@@ -72,4 +76,4 @@ Only after real API validation:
 - Other customer features only after explicit product approval
 
 ## Rule
-Do not let later phases turn the public catalog into ecommerce or delay the simple product whose goal is to show variety, preserve customer interest, and generate human-assisted orders.
+Do not let later phases turn the public catalog into ecommerce or delay the simple product whose goal is to show variety, preserve customer interest, generate human-assisted orders, and let identified customers consult their order status.
