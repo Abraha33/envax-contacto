@@ -1,6 +1,6 @@
 # ENVAX — Product Vision v1
 
-Status: canonical product definition draft. Branch: `docs/product-definition-v1`.
+Status: canonical product definition. Branch: `docs/product-definition-v1`.
 
 ## Product definition
 ENVAX is a B2B digital catalog, not an ecommerce store. Its purpose is to make the breadth of ENVAX's portfolio immediately visible, help a business discover relevant products, save recurring product interests in named favorites lists, and convert that interest into a human-assisted order flow.
@@ -24,7 +24,7 @@ Core promise: **discover → explore → save → send order request → advisor
 5. Customer explores by category, brand, search, family, product, and variant.
 
 ## Favorites lists
-The previous single `Mi selección` concept is replaced by **named favorites lists**.
+The canonical persistence concept is **named favorites lists**.
 
 Examples:
 - `Halloween`
@@ -46,16 +46,24 @@ Customer-facing order states should remain simple. Exact final labels are still 
 
 `Solicitud enviada → En atención → Pedido confirmado → Completado`
 
-## Anonymous profile and Portal mode
-The initial experience should support an **anonymous profile/login concept** so the customer can save data without being asked for a full registration form.
+## Anonymous profile and Customer Portal — V1
+The initial experience supports an **anonymous profile/login concept** so the customer can save data without being asked for a full registration form.
 
 Initial requested data remains minimal:
 - business name;
 - business type.
 
-Cross-device recovery/synchronization for the anonymous profile is required conceptually but the exact technical method is still **PENDING ARCHITECTURE DECISION**.
+Same-device persistence is part of the initial experience. Cross-device recovery/synchronization is required conceptually but the exact technical method is still **PENDING ARCHITECTURE DECISION**.
 
-The optional **Customer Portal** is a separate mode that requires the customer to provide/verify additional data. Its currently approved customer-facing purpose is to let the customer view their orders. Do not expand it into invoices, accounting, prices, or ecommerce without explicit approval.
+The **Customer Portal is part of V1**, implemented as a separate authenticated/verified mode from the public catalog. Activating Portal mode may require the customer to provide or verify additional data.
+
+Current approved customer-facing portal scope:
+- portal activation / identification;
+- portal access/login;
+- `Mis pedidos`;
+- order detail and status.
+
+Do not expand the V1 portal into invoices, accounting, private prices, checkout, payments, or ecommerce without explicit approval.
 
 ## Public product information
 Currently approved as public:
@@ -66,13 +74,11 @@ Currently approved as public:
 Product photo is **not approved as public**. The visibility of other product fields remains pending and must not be guessed.
 
 ## Promotions
-Promotions are customer-facing commercial opportunities managed from an **administrator panel**.
+Promotions are an approved product direction but are not required to block completion of the core catalog + order-request + Customer Portal V1.
 
-The administrator can choose recipients such as:
+The intended administrator capability is to choose recipients such as:
 - a specific customer;
 - a business type (for example, Panadería).
-
-This is one reason business type is collected at entry.
 
 A customer can select one or multiple promotions they are interested in and continue to an advisor through WhatsApp or email. Promotions do not become an automatic ecommerce purchase.
 
@@ -82,17 +88,17 @@ Seller/advisor assignment is decided by the system.
 The internal browser extension remains a bridge while ERP/API integration is unresolved. The approved direction is that the seller uses the extension/manual-copy workflow and, when the operation is successfully processed, the system automatically updates the relevant record from `solicitud` to `pedido` everywhere.
 
 ## Primary conversion
-The main success event is a customer progressing from catalog exploration/favorites/promotions to a meaningful order request handled by an advisor.
+The main success event is a customer progressing from catalog exploration/favorites to a meaningful order request handled by an advisor.
 
 ## ERP integration status
 All Wappsi/ERP API capabilities remain **PENDING REAL VALIDATION**. Existing documentation is reference material only; do not treat products, prices, invoices, customers, orders, promotions, pagination, production URL, or write capabilities as production-confirmed until tested and approved.
 
 ## Future scope
 Potential later capabilities include:
-- richer customer-portal behavior if approved;
+- promotions rollout and deeper promotion automation;
 - direct ERP order integration;
 - PWA/browser notifications;
 - sharing products/lists;
-- deeper promotion automation.
+- richer customer-portal behavior only when explicitly approved.
 
 These must not turn the public catalog into ecommerce or delay the first useful product version.
