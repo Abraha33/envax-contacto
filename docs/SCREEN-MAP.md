@@ -52,15 +52,15 @@ This document defines the inventory of screens/states to design. It is not the f
 41. WhatsApp confirmation message
 42. Email confirmation message
 
-## Optional Customer Portal
+## Customer Portal — V1
 43. Portal activation / identification
 44. Portal access/login state
 45. `Mis pedidos`
 46. Order detail/status
 
-Current approved portal purpose is order visibility only. Do not add invoices, accounting, private prices, checkout, or ecommerce behavior without explicit approval.
+Current approved V1 portal purpose is order visibility only. Do not add invoices, accounting, private prices, checkout, payments, or ecommerce behavior without explicit approval.
 
-## Promotions
+## Promotions — post-core V1 / V1.2 direction
 47. Promotions feed/list
 48. Promotion detail
 49. Select one/multiple promotions
