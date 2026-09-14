@@ -59,23 +59,30 @@ Same-device persistence should restore the customer's anonymous context and favo
 
 Cross-device synchronization is required conceptually, but the exact anonymous-login/recovery technology is **PENDING ARCHITECTURE DECISION**.
 
-## Optional Customer Portal
-The customer may later activate Portal mode by providing/verifying additional information.
+## Customer Portal — V1
+The Customer Portal is part of V1 as a separate mode from the public catalog.
+
+Portal activation may require the customer to provide or verify additional information.
+
+Current approved portal flow:
+`Catalog / returning customer → Activate or access Portal → Identification/login → Mis pedidos → Order detail/status`
 
 Current approved portal purpose:
-- view their orders.
+- view their orders;
+- view order detail;
+- view the simple order status.
 
-Do not add invoices, accounting, private prices, checkout, or ecommerce behavior without explicit approval.
+Do not add invoices, accounting, private prices, checkout, payments, or ecommerce behavior without explicit approval.
+
+Favorites remain usable independently of Customer Portal mode.
 
 ## Promotions
-Promotions are created/managed by an administrator and targeted to:
-- a specific customer; or
-- a business type.
+Promotions are approved as a later product capability and must not block the core V1 catalog + order-request + Customer Portal implementation.
 
-Customer flow:
+Intended customer flow:
 `Promotion received/opened → Select one or more promotions → Continue → WhatsApp or Email → Advisor`
 
 Promotions support commercial intent; they do not trigger automatic purchase.
 
 ## Future notifications / PWA
-Browser/PWA notifications remain future scope. They must not block the catalog/order-request MVP.
+Browser/PWA notifications remain future scope. They must not block V1.
