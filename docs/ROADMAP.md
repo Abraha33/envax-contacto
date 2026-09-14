@@ -33,12 +33,16 @@
 - `Mis pedidos`
 - Order detail/status
 - Keep favorites usable independently of Portal
-- Basic analytics
+- Analytics module foundation across landing + catalog + identified area
+- Acquisition/source tracking including QR campaigns
+- Core product/UX/conversion events and funnels
 - Responsive/accessibility testing
 
 ## Phase 3 — Operational pilot
 - Test with real customers
-- Measure catalog → favorites → order-request conversion
+- Measure acquisition → landing → catalog → favorites/contact → order-request → order conversion
+- Compare QR, search/direct and other acquisition sources
+- Identify abandonment, friction and device-specific issues
 - Validate whether customers understand named favorites lists
 - Validate advisor handoff quality
 - Validate Customer Portal access and order visibility
