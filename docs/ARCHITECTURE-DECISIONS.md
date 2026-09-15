@@ -5,6 +5,7 @@
 - ENVAX represents a general distributor, not a catalog tied to one exclusive business type such as bakeries or restaurants.
 - Public experience is not ecommerce.
 - No public cart, checkout, online payment, or marketplace behavior.
+- V1 does not show product prices. Pricing is future scope and must not be assumed by frontend, backend, catalog or ERP integration design.
 - Named favorites lists replace the old single `Mi selección` concept.
 - Customer CTA can say `Enviar pedido`, while the initial internal state is `solicitud` until seller processing promotes it to `pedido`.
 - Human seller remains part of the commercial conversion flow.
@@ -36,7 +37,9 @@ Approved canonical rules:
 - Local anonymous state may be lost if browser/device storage is cleared, reset or unavailable.
 - Persistent favorites, customer benefits, orders and other private capabilities require an identified/logged-in customer.
 - Login/customer identification is the boundary that allows ENVAX to persist customer-owned business data in the database.
-- Exact login/authentication technology remains pending architecture definition.
+- V1 authentication uses Supabase Auth with a simple password-based login.
+- For the simplest native Supabase V1 implementation, the customer credential is email + password; the email acts as the login identifier.
+- MFA/2FA is not required in V1. It may be added later as an optional security reinforcement.
 
 Important separation:
 - anonymous business persistence: not allowed;
@@ -50,7 +53,7 @@ Current approved private capability:
 
 Customer-only capabilities also include access to promotions when applicable.
 
-Do not add invoices, electronic invoicing, accounting, private prices, checkout, or ecommerce behavior without explicit approval.
+Do not add invoices, electronic invoicing, accounting, prices, checkout, or ecommerce behavior without explicit approval.
 
 ## Favorites
 - Anonymous favorites may exist only as local browser/device state and are not guaranteed to survive local storage loss.
@@ -82,6 +85,7 @@ Approved catalog rules:
 - A product may have general media shared by its variants.
 - Product attributes may vary according to product type/category instead of forcing the same attributes on every product.
 - Exact product fields, attribute schema, SKU/reference policy and source-of-truth synchronization are intentionally deferred to later data/integration phases.
+- Prices are excluded from V1 catalog output.
 
 ## Requests
 Canonical meaning:
@@ -114,8 +118,13 @@ ENVAX has internal company members.
 
 Canonical V1 roles:
 - `seller` (`vendedor`): commercial operator. The previous word `advisor/asesor` is a customer-facing synonym only; technically `asesor` and `vendedor` mean the same role.
-- `administrator` (`administrador`): internal role with broader management permissions; exact permission matrix is defined later in identity/authorization design.
+- `administrator` (`administrador`): internal role with full management authority over ENVAX V1.
 - V1 operates with exactly one seller.
+
+Administrator rule:
+- The administrator can perform all administrative and operational actions available in ENVAX V1.
+- The main authorization boundary to define precisely is therefore the narrower set of actions allowed to the seller.
+- Even administrator actions that alter important business state must remain auditable.
 
 ## Seller operations
 - The seller is the human operator who receives and works commercial requests/orders.
@@ -124,7 +133,10 @@ Canonical V1 roles:
 - The customer does not choose the seller manually in V1.
 - If ENVAX adds multiple sellers in the future, seller assignment/routing becomes a future-scope feature rather than a V1 requirement.
 - Seller can move a request into attention, confirm the commercial order, cancel a request, cancel an order, and confirm that external invoicing has been completed.
+- Seller can read the customer information necessary to perform the commercial workflow.
 - Seller cannot erase commercial history through normal operations.
+- Seller must not gain administrative configuration privileges merely because there is only one seller.
+- Exact seller permission boundaries beyond the approved commercial workflow are the remaining authorization item to lock.
 - The browser extension supports the seller's external operational workflow by transforming/copying confirmed WhatsApp/order information into the format expected by the existing external system.
 - The extension does not make ENVAX an invoicing application and must not add electronic-invoice creation/editing/display capabilities to ENVAX.
 - The seller must review the customer/products/quantities and explicitly confirm before ENVAX records the `facturado` status.
@@ -144,7 +156,7 @@ Direct WhatsApp/email contact does not automatically create a formal request unl
 - Managed from an administrator panel/module.
 - Admin can target a specific customer or business type.
 - Customer can select one or multiple promotions and continue through WhatsApp/email to a seller.
-- Promotions must not turn ENVAX into ecommerce: no checkout, payment, or automatic purchase.
+- Promotions must not turn ENVAX into ecommerce: no checkout, payment, automatic purchase or V1 price engine.
 - PWA/push is later scope.
 
 ## Public product data
@@ -154,9 +166,11 @@ Approved public fields:
 - reference.
 
 Product photo is not approved as public. Other product-field visibility remains pending.
+Prices are explicitly outside V1.
 
 ## ERP
 All API/integration claims remain pending real validation.
+ENVAX V1 must not depend on ERP price synchronization because prices are not shown in V1.
 
 ## Deployment boundaries
 Landing, catalog, extension, docs, and Workers should remain cleanly separable so Cloudflare can deploy only the intended application portion/assets for each project.
@@ -165,3 +179,5 @@ Landing, catalog, extension, docs, and Workers should remain cleanly separable s
 - Never expose ERP/API secrets in browser code.
 - Public repository must contain no confidential ERP documents, credentials, real customer data, invoices, invoice XML/PDF or tax documents.
 - Extension permissions should be minimal.
+- Supabase Auth is the V1 authentication provider.
+- V1 uses simple password authentication; MFA is future/optional reinforcement rather than a launch requirement.
