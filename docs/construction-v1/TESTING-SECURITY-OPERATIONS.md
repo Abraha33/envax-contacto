@@ -2,242 +2,230 @@
 
 ## 1. Testing strategy
 
-Testing is part of construction, not a final cleanup phase.
+Testing is part of every construction phase.
 
 ### Unit tests
-Cover pure business rules:
-- seller assignment policy;
-- customer-visible status mapping;
-- favorites list rules;
-- product visibility policy;
+Cover pure rules such as:
+- state-transition rules;
+- favorites/list rules;
+- catalog visibility;
 - promotion eligibility;
-- parser functions;
-- idempotency helpers.
+- idempotency helpers;
+- extension/parser normalization;
+- permission decision helpers.
 
 ### Database integration tests
-Use isolated local/test D1 database created from migrations.
+Use a local/test Supabase PostgreSQL instance rebuilt from migrations.
 
 Cover:
-- constraints;
-- ownership queries;
-- transactional state changes where supported by chosen data access path;
-- request → order conversion;
+- constraints/indexes;
+- RLS policies;
+- customer ownership isolation;
+- request→order transaction;
+- idempotency;
 - catalog import/upsert behavior;
-- anonymous → customer linking.
+- audit writes.
 
 ### API contract tests
-For every public/admin/seller endpoint:
+Every endpoint as applicable:
 - valid request;
 - invalid schema;
-- unauthorized/forbidden;
-- not found;
+- unauthenticated/forbidden;
 - ownership isolation;
-- idempotency if applicable;
-- stable error codes.
+- invalid state transition;
+- idempotency;
+- stable error code.
 
 ### Browser E2E
 Use Playwright.
 
-Critical journeys:
+Critical journeys by phase:
 1. landing → catalog → product;
-2. anonymous creation;
-3. create named favorites list;
-4. add/remove/move favorite;
-5. recover anonymous identity on another browser context;
-6. send pedido request;
-7. confirmation/status view;
-8. portal upgrade/order history when Phase 7 exists;
-9. admin promotion target → customer visibility when Phase 8 exists.
+2. customer login/register/recovery;
+3. create named persistent list;
+4. add/remove product variant;
+5. prepare/send formal request;
+6. seller starts attention;
+7. seller confirms order;
+8. customer sees own order/status;
+9. admin promotion targeting;
+10. seller marks `FACTURADO` after simulated successful external process.
+
+Anonymous browser contexts are used to prove private APIs are inaccessible; no persisted anonymous-account recovery flow exists in V1.
 
 ### Extension tests
-- parser fixtures are plain unit tests;
-- browser extension integration tests use controlled HTML fixtures;
-- no production ERP is required for normal CI;
-- real ERP smoke is manual/controlled until automation is safe.
+- parser fixtures are pure unit tests;
+- browser extension integration uses controlled fixtures;
+- no production ERP needed for normal CI;
+- ambiguous input must produce no silent write;
+- real ERP smoke remains controlled/manual until safe automation exists.
 
-## 2. Responsive/browser matrix
+## 2. Accessibility/browser matrix
 
-Minimum before commercial MVP:
-- Chrome desktop current;
-- Edge desktop current;
-- Safari desktop current where available;
-- Chrome Android representative viewport;
-- Safari iPhone representative viewport;
-- 360px mobile width;
-- common tablet width;
-- standard desktop;
-- large desktop.
+Before production test representative:
+- current Chromium desktop;
+- Edge desktop;
+- Safari where available;
+- Android Chrome viewport/device;
+- iPhone Safari viewport/device;
+- 360px mobile;
+- tablet;
+- standard and large desktop;
+- zoom/text scaling.
 
-Test zoom and text scaling. Do not validate responsive design only by resizing one desktop browser.
+## 3. Security model
 
-## 3. Accessibility baseline
+### Customer auth
+- Supabase Auth email + password;
+- standard secure Supabase sessions/JWT;
+- no second password store;
+- no password/token logging;
+- MFA future optional reinforcement.
 
-- semantic headings/landmarks;
-- keyboard-operable navigation/actions;
-- visible focus;
-- form labels/errors;
-- sufficient contrast;
-- touch targets;
-- reduced-motion handling where motion exists;
-- no color-only status communication;
-- automated accessibility checks plus manual keyboard pass.
-
-## 4. Security model
-
-### Browser/customer auth
-- Secure/HttpOnly session cookie;
-- random server-side session secret;
-- session secret stored hashed if persisted;
-- CSRF strategy appropriate to same-site cookie API;
-- session rotation/revocation;
-- no primary auth token in localStorage.
-
-### Anonymous recovery
-- recovery credential generated cryptographically randomly;
-- shown only when created/rotated;
-- only hash stored;
-- rate-limit recovery attempts;
-- credential rotation invalidates previous one;
-- never derive recovery from business name/type.
+### Database isolation
+- RLS enabled for private tables;
+- policies derive ownership from authenticated identity;
+- browser-provided `customer_id` is never trusted as ownership proof;
+- service-role keys are server-only.
 
 ### Admin
-- internal admin should sit behind Cloudflare Access initially;
-- application role checks on every admin API route;
-- audit sensitive actions;
-- no trust based only on hidden URL.
+- Supabase-authenticated `ADMIN` application role;
+- full V1 administration/operations;
+- sensitive actions audited;
+- hidden route is never considered authorization.
+
+Additional perimeter protection such as Cloudflare Access may be added for admin defense-in-depth, but it does not replace application authorization.
+
+### Seller
+- one authenticated `SELLER` in V1;
+- commercial operations only;
+- cannot administer catalog/users/promotions/config;
+- cannot erase audit/commercial history.
 
 ### Seller extension
-- no permanent secret bundled in extension;
-- short-lived/pairing auth;
-- minimum host/browser permissions;
-- selected text only;
-- no silent full-page scraping;
-- state transition validated on server;
-- raw ERP text not stored by default.
-
-### Public abuse
-Use rate limiting and Turnstile selectively for abuse-prone flows such as account/recovery/verification or excessive submissions. Server must always verify Turnstile token when used.
+- uses seller auth context;
+- no permanent service-role/ERP secret bundled;
+- minimum browser permissions;
+- selected/necessary external context only;
+- no silent state write from ambiguous data.
 
 ### Secrets
-Secrets belong in Cloudflare secret bindings / CI secret storage, never:
-- Git;
-- frontend code;
-- extension bundle;
-- D1 public rows;
-- logs.
+Never commit or expose:
+- Supabase service-role/secret keys;
+- ERP/provider credentials;
+- real customer data;
+- auth tokens;
+- `.env` files.
 
-## 5. Data minimization/privacy
+Use Supabase project secrets/environment and CI secret storage.
 
-- collect only business name/type for anonymous mode;
-- contact data only when customer chooses a verified portal/contact flow;
-- IP may be security/analytics metadata but never identity;
-- avoid storing raw ERP clipboard text;
-- redact logs;
-- retention remains configurable until policy/legal review closes it;
-- support contact/session revocation and later deletion/anonymization workflow.
+## 4. Privacy/data minimization
 
-## 6. Idempotency
+Public browsing requires no customer identity.
 
-Required for:
-- order-request creation;
-- extension ingestion/conversion;
-- async email/provider jobs;
-- promotion fan-out/delivery jobs if introduced.
+Persistent business data is collected only after authentication and is limited to approved needs.
 
-Queue consumers must tolerate at-least-once delivery.
+Do not use IP as customer identity.
 
-## 7. Observability
+Analytics may use pseudonymous/anonymous session identifiers but must not capture passwords, credentials, private messages or unnecessary personal data.
 
-Every API request gets `requestId`.
+Detailed Analytics retention baseline: 12 months, subject to legal/privacy closure before production.
 
-Structured log minimum:
+## 5. Idempotency
+
+Required at minimum for:
+- formal request creation;
+- request→order conversion;
+- sensitive retryable commercial commands;
+- future external integration writes.
+
+## 6. Observability
+
+Every API request should have a `requestId`/correlation ID.
+
+Structured log baseline:
 - timestamp;
 - requestId;
 - route/action;
-- status code;
+- status;
 - duration;
-- actor type/id pseudonymous where safe;
+- safe actor identifier/role when appropriate;
 - error code;
 - deployment version/commit.
 
-Never log:
-- recovery secret;
-- session secret;
-- provider keys;
-- full copied ERP text;
-- unnecessary customer contact data.
+Never log passwords, full tokens, service keys, ERP secrets or private message content.
 
-Business metrics baseline:
-- landing → catalog entries;
-- product views;
-- favorites created/items added;
-- pedido requests submitted;
-- requests by status;
-- conversion request → order;
-- promotion interest later;
-- error/retry rates.
+Audit and technical logs are separate.
 
-## 8. Backup/recovery
+## 7. Backup/recovery
 
-D1 migration discipline:
-- every schema change is a committed migration;
-- apply staging first;
-- verify application compatibility;
-- production migration has rollback/restore note.
+- migrations in Git;
+- staging before production;
+- Supabase/platform backup capability chosen according to final plan;
+- real restore drill required before `PRODUCTION READY`;
+- RPO/RTO recorded in operations docs once infrastructure plan is selected;
+- catalog media must have recoverable source/metadata.
 
-Before `PRODUCTION READY`, perform a real restore drill using D1 recovery capabilities and document recovery time/result.
+## 8. Performance baseline
 
-R2 asset recovery/source lineage:
-- assets should be reproducible or backed by canonical source;
-- never treat a browser cache as source of truth;
-- store checksums/source metadata where useful.
+Measure rather than guess.
 
-## 9. Performance budgets
+Initial goals:
+- small customer bundle and lazy loading where useful;
+- responsive images;
+- paginated/indexed catalog queries;
+- no ERP call in customer critical path;
+- Edge Functions remain short-lived; heavy future jobs move out of request path;
+- query plans reviewed after realistic seed volume exists.
 
-Initial targets are budgets to measure, not contractual SLAs:
-- keep customer JS bundle small enough for ordinary mobile networks;
-- lazy-load non-critical routes/features;
-- image sizes responsive and optimized when visible;
-- avoid loading admin/portal code in public landing bundle;
-- API catalog queries paginated/indexed;
-- no network call to ERP in customer critical path.
+## 9. CI gates
 
-Measure Core Web Vitals in staging/production and set concrete thresholds after first real design build.
-
-## 10. CI gates
-
-Every PR should run:
-- install with lockfile;
+Every implementation PR should run:
+- frozen-lockfile install;
 - lint;
 - typecheck;
 - unit tests;
-- API/database integration tests;
-- build all affected packages/apps;
-- E2E critical smoke where environment supports it;
-- dependency/security audit review.
+- database/RLS integration tests when schema changes;
+- API contract tests when API changes;
+- affected app/package builds;
+- E2E smoke when environment supports it;
+- dependency/security review.
 
-A deployment workflow must identify the exact Git commit.
+CI/deploy output must identify the exact Git commit.
 
-## 11. Release/rollback
+## 10. Release/rollback
 
 Use staging before production.
 
-For each production release:
-- know changed migrations;
-- know affected deployables;
-- deploy independent components only when needed;
-- retain previous working deployment/rollback path;
-- smoke critical flow immediately after release.
+For each release know:
+- migrations included;
+- functions/apps changed;
+- rollback strategy;
+- whether DB migration is backward compatible;
+- post-deploy critical smoke tests.
+
+## 11. Required pre-production security evidence
+
+Must prove:
+- Customer A cannot read/write Customer B resources;
+- anonymous visitor cannot access private customer data;
+- customer cannot perform seller/admin transitions;
+- seller cannot perform admin-only operations;
+- service-role secrets are absent from browser/extension builds;
+- RLS enabled on private tables;
+- Storage public bucket cannot be anonymously written;
+- retries do not duplicate formal requests/orders;
+- logs do not leak auth/provider secrets;
+- sensitive actions leave audit records.
 
 ## 12. Operational runbook minimum
 
-Document before production:
-- how to deploy each app/worker;
-- how to roll back;
-- how to inspect API errors;
-- how to revoke seller/admin/customer sessions;
-- how to disable promotion sending;
-- how to stop extension conversion if parser issue is found;
-- how to restore D1;
-- how to rotate provider secrets;
-- whom to contact/what to do if Wappsi integration later fails.
+Before production document:
+- how to deploy/rollback customer/admin/API;
+- how to apply/check migrations;
+- how to inspect API/log errors;
+- how to revoke customer/seller/admin sessions;
+- how to disable the seller-extension write path;
+- how to restore PostgreSQL/project data;
+- how to rotate secrets;
+- how to respond if future ERP integration fails.
