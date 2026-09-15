@@ -1,139 +1,180 @@
 # ENVAX — Build Start Goal V1
 
-Use this document as the first implementation goal for Claude/Codex/other coding agents.
+Use this document as the first implementation goal for Codex/Claude/other coding agents.
 
 ## Mission
 
-Begin ENVAX construction from the approved product definition and official construction plan without changing product scope, without depending on Wappsi, and without breaking the current landing/QR deployment.
+Begin ENVAX construction from the approved product/domain architecture without changing product scope, without depending on Wappsi, and without breaking the existing landing/QR deployment.
 
 ## Repository
 
 `Abraha33/envax-contacto`
 
-## Authority
+## Implementation branch
 
-Read first:
-1. `CLAUDE.md`
-2. `docs/PRODUCT-VISION.md`
-3. `docs/USER-FLOW.md`
-4. `docs/FAVORITES.md`
-5. `docs/construction-v1/README.md`
-6. `docs/construction-v1/OFFICIAL-CONSTRUCTION-PLAN.md`
-7. `docs/construction-v1/ARCHITECTURE.md`
-8. `docs/construction-v1/REPO-STRUCTURE.md`
-9. `docs/construction-v1/PHASES-AND-GATES.md`
-
-## First implementation branch
-
-Create a new branch from the final approved/merged documentation state:
+Create from the current approved documentation state:
 
 `build/foundation-v1`
 
-Do not implement directly on `main`.
+Do not implement directly on `main` or on the documentation branch.
 
-## Scope of first build
+## Scope
 
-Implement **Phase 1 only: Foundation**.
+Implement **Foundation only**.
 
 ### Required tasks
 
-1. Establish pnpm workspace and root scripts.
-2. Create skeletons:
+1. Establish a pnpm workspace and root scripts.
+2. Pin Node.js to a currently supported version compatible with the Supabase CLI; Node 20+ is required for npm/pnpm CLI installation.
+3. Create non-destructive skeletons:
    - `apps/customer`
    - `apps/admin`
-   - `services/api`
    - `packages/contracts`
-   - `packages/db`
    - `packages/ui`
    - `packages/config`
    - `tools/catalog-import`
    - `extensions/seller`
-3. Do not destructively move the current root landing yet.
-4. Do not modify the working QR Worker behavior.
+   - `tests/e2e`
+4. Preserve current root landing files and `qr-worker/` behavior; do not move/switch production routes in Foundation.
 5. Configure TypeScript strict mode.
-6. Configure lint/format/test/typecheck/build.
-7. Scaffold customer/admin using React + TypeScript + Vite compatible with Cloudflare Workers Static Assets / Cloudflare Vite plugin.
-8. Scaffold API Worker with `/api/v1/health` only plus modular directory structure.
-9. Add D1 local/staging binding configuration with no production secret/data.
-10. Add test harness using Vitest.
-11. Add Playwright skeleton for later E2E.
-12. Add GitHub Actions CI running install, lint, typecheck, tests and builds.
-13. Add `.gitignore` protection for local secrets/build outputs.
-14. Add environment example files containing names/placeholders only, never secrets.
-15. Add README instructions for local start/build/test.
+6. Configure lint, format, test, typecheck and build scripts.
+7. Scaffold customer/admin with React + TypeScript + Vite, but do not implement visual product screens beyond safe shells.
+8. Add Supabase CLI as a pinned dev dependency and initialize the canonical `supabase/` directory.
+9. Commit safe Supabase local configuration, versioned migrations directory and seed scaffolding. Never commit project secrets.
+10. Create `supabase/functions/api-v1` with a minimal TypeScript REST shell and `/api/v1/health` behavior.
+11. Establish module directories matching the approved backend architecture, without implementing feature logic yet.
+12. Add the first foundation migration only for infrastructure/smoke needs. Do not prematurely implement all business tables if Foundation does not need them.
+13. Add a test harness using Vitest.
+14. Add Playwright skeleton for later E2E.
+15. Add GitHub Actions CI running install, lint, typecheck, tests and builds.
+16. Add `.gitignore` protection for local Supabase state, `.env*`, build outputs and secrets.
+17. Add environment example files containing names/placeholders only.
+18. Document local start/reset/build/test commands.
 
-## Explicitly NOT in Phase 1
+## Recommended target repository shape
+
+```text
+envax-contacto/
+├── apps/
+│   ├── customer/
+│   └── admin/
+├── extensions/
+│   └── seller/
+├── packages/
+│   ├── contracts/
+│   ├── ui/
+│   └── config/
+├── supabase/
+│   ├── config.toml
+│   ├── migrations/
+│   ├── seed.sql
+│   └── functions/
+│       └── api-v1/
+├── tools/
+│   └── catalog-import/
+├── tests/
+│   └── e2e/
+├── qr-worker/            # existing; preserve
+├── index.html            # existing landing; preserve
+├── demo.html             # existing; preserve
+├── pnpm-workspace.yaml
+└── package.json
+```
+
+## Explicitly NOT in Foundation
 
 Do not implement yet:
-- product catalog UI beyond empty shell;
-- favorites;
-- anonymous auth behavior;
-- pedido requests;
+- final catalog UI;
+- final catalog schema/import;
+- persistent favorites;
+- customer registration UX beyond a shell;
+- formal solicitudes/pedidos;
 - promotions;
-- portal;
-- extension parser;
+- seller extension parser;
 - Wappsi calls;
 - ERP credentials;
-- final visual design;
-- production database migrations beyond foundation smoke if not needed;
-- Cloudflare production DNS changes.
+- price/stock;
+- invoice entities;
+- production database migration;
+- production DNS/deployment switch;
+- anonymous persisted accounts or recovery credentials;
+- seller assignment/routing.
 
 ## Technical constraints
 
 - TypeScript end-to-end.
 - pnpm workspaces.
+- React + Vite for customer/admin.
+- Supabase Auth/PostgreSQL/Storage/Edge Functions baseline.
+- Supabase CLI project structure under `supabase/`.
+- PostgreSQL migrations tracked in Git.
+- RLS is mandatory when private business tables are introduced.
+- Browser apps/extension never receive service-role keys.
 - Keep dependency count conservative.
-- Hono is preferred for API routing, but if raw Workers produces a materially simpler Phase 1 shell, document the decision before changing the architecture baseline.
-- Zod/shared runtime schemas baseline.
-- Drizzle+D1 baseline; no ORM implementation beyond what Phase 1 requires to prove package/binding wiring.
-- Browser apps/extension cannot import privileged DB code.
-- No secret committed.
+- Shared runtime contracts/validation may use Zod when feature contracts begin; do not add libraries without use.
+- Modular monolith; no microservices.
+
+## Local Supabase baseline
+
+Foundation should support the documented Supabase workflow:
+
+```bash
+pnpm supabase start
+pnpm supabase db reset
+```
+
+Local Supabase requires a Docker-compatible runtime.
+
+A clean clone should be able to recreate the local backend from committed config/migrations/seed without manual dashboard-only schema changes.
 
 ## Landing protection
 
 Current landing is production-sensitive.
 
-Phase 1 may create `apps/landing` only as a non-production copy after auditing current files. Do not change Cloudflare deployment root/domain in the same change.
-
-A later dedicated migration task must prove parity before switching production.
+Foundation must not change its production routing/configuration. If `apps/landing` is introduced later, parity and rollback are a dedicated gate.
 
 ## Required tests/evidence
 
-Before declaring Phase 1 complete:
+Before declaring Foundation complete:
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
 ```
 
-Also prove:
+Also prove when the environment is available:
+- Supabase local stack starts;
+- database can reset cleanly from migrations/seed;
+- `api-v1` health route works locally;
 - customer shell runs locally;
 - admin shell runs locally;
-- API `/api/v1/health` returns expected JSON locally;
-- staging deployment succeeds if Cloudflare credentials/environment are available;
-- current landing and QR files are not accidentally modified.
+- existing root landing and QR Worker are not accidentally modified;
+- repository contains no secrets.
+
+Remote/staging Supabase deployment is not required to call local Foundation code-complete if credentials/project have not yet been provisioned, but the gate must clearly report that evidence as pending rather than pretending it passed.
 
 ## Required final report
 
-At end of Phase 1 report exactly:
+Report:
 - branch and HEAD commit;
 - files/directories added;
-- dependency choices and why;
-- test/build results;
-- staging deployment result;
+- dependency/tool choices;
+- local Supabase result;
+- lint/typecheck/test/build results;
+- remote/staging result if available;
 - known blockers;
-- whether `FOUNDATION PASS` is PASS or BLOCKED;
-- exact next task for Phase 2.
+- `FOUNDATION PASS` = PASS or BLOCKED;
+- exact next task.
 
 ## Stop conditions
 
-Stop and mark BLOCKED only if:
-- repository/permissions prevent required work;
-- current production deployment cannot be safely isolated;
-- required Cloudflare credentials are unavailable for staging verification;
-- a canonical product/architecture contradiction makes foundation unsafe.
+Mark BLOCKED only if:
+- repository/permissions prevent the work;
+- current production landing/QR cannot be isolated safely;
+- local development requirements cannot be satisfied;
+- a new canonical product/architecture contradiction makes construction unsafe.
 
-Do not stop for Wappsi/API uncertainty; it is intentionally outside Phase 1.
+Do not stop because Wappsi is unknown; Wappsi is deliberately outside Foundation.
