@@ -4,99 +4,108 @@
 
 Before proposing product or implementation changes, read in this order:
 
-1. `docs/PRODUCT-VISION.md`
-2. `docs/USER-FLOW.md`
-3. `docs/FAVORITES.md`
-4. `docs/SELLER-EXTENSION.md`
-5. `docs/ERP-INTEGRATION-PENDING.md`
-6. `docs/construction-v1/README.md`
-7. `docs/construction-v1/OFFICIAL-CONSTRUCTION-PLAN.md`
-8. `docs/construction-v1/ARCHITECTURE.md`
-9. `docs/construction-v1/REPO-STRUCTURE.md`
-10. `docs/construction-v1/DATA-MODEL.md`
-11. `docs/construction-v1/API-CONTRACTS.md`
-12. `docs/construction-v1/PHASES-AND-GATES.md`
-13. `docs/construction-v1/BUILD-START-GOAL.md`
+1. `docs/ARCHITECTURE-DECISIONS.md`
+2. `docs/PRODUCT-VISION.md`
+3. `docs/USER-FLOW.md`
+4. `docs/FAVORITES.md`
+5. `docs/BACKEND-FRONTEND-CONTRACT-V1.md`
+6. `docs/API-DESIGN-V1.md`
+7. `docs/DATABASE-DESIGN-V1.md`
+8. `docs/BACKEND-ARCHITECTURE-V1.md`
+9. `docs/INTEGRATIONS-V1.md`
+10. `docs/SECURITY-PRIVACY-V1.md`
+11. `docs/SELLER-EXTENSION.md`
+12. `docs/ERP-INTEGRATION-PENDING.md`
+13. `docs/construction-v1/README.md`
+14. `docs/construction-v1/OFFICIAL-CONSTRUCTION-PLAN.md`
+15. `docs/construction-v1/PHASES-AND-GATES.md`
+16. `docs/construction-v1/BUILD-START-GOAL.md`
+
+If an older construction document conflicts with the first ten documents above, the newer canonical decisions above win and the conflicting construction document must be corrected before implementation.
 
 ## Canonical product rules
 
-- ENVAX is one B2B digital catalog platform, not ecommerce.
-- Do not add public cart, checkout, payment, marketplace behavior, or cart totals unless explicitly approved later.
-- Entry must stay low-friction: business name + business type.
-- ENVAX creates/uses an anonymous identity before forcing a traditional account.
-- Anonymous cross-device recovery must not depend on IP; current construction baseline is an ENVAX-generated non-personal recovery credential.
-- Favorites are **multiple named lists**, not the old single `Mi selección` model.
-- Customer CTA may say `Enviar pedido`.
-- Internally the first commercial entity is a `solicitud`/`order_request`.
-- A validated seller/extension flow converts the solicitud into a real `pedido`.
-- Customer-visible lifecycle: `Solicitud enviada → En atención → Pedido confirmado → Completado`.
-- Seller/advisor assignment is decided by the system.
-- Customer portal is optional; its initial core value is viewing orders/status, not becoming an ERP or ecommerce account area.
-- Promotions are admin-managed and may target a specific customer or a business type.
-- A customer can select one or several promotions and continue to an advisor through WhatsApp/email.
-- Public product field/photo visibility is not fully frozen. Implement through a visibility policy; do not hard-code all product media as public.
-- The experience must remain extremely simple for customers.
-- ENVAX brand is visually primary; partner brands are secondary.
-
-## ERP/Wappsi rule
-
-ERP/Wappsi API integration is **PENDING REAL VALIDATION IN GENERAL**.
-
-Never assume an endpoint/capability is production-confirmed from documentation alone. Do not block core ENVAX construction on ERP uncertainty.
-
-No ERP secret may be placed in frontend, extension, Git or public documentation.
+- ENVAX is one B2B digital catalog platform for a general distributor, not ecommerce.
+- No public cart, checkout, online payment, marketplace behavior, price engine or stock engine in V1.
+- Public catalog can be browsed without login.
+- Anonymous visitors do not persist business data in the ENVAX database.
+- Optional anonymous favorites may exist only in local browser/device storage and may be lost.
+- Persistent named favorites lists, formal solicitudes, pedidos, private promotions and private customer data require login.
+- V1 authentication is Supabase Auth with email + password.
+- MFA/2FA is future optional reinforcement, not a launch requirement.
+- Favorites are multiple named lists and are not a cart.
+- Customer CTA may say `Enviar pedido`; internally that creates a `solicitud` first.
+- Formal flow: `Solicitud enviada → En atención → Pedido confirmado → Facturado`.
+- `FACTURADO` means the seller confirmed invoicing happened outside ENVAX. ENVAX does not create, store, show or manage electronic invoices.
+- V1 has exactly one seller. No seller-assignment/routing engine is required.
+- The seller controls the commercial workflow only.
+- The administrator has full V1 administrative/operational authority, while commercial/audit history is not silently hard-deleted as a normal action.
+- Public catalog media/photos are allowed in V1.
+- Public catalog fields include at least name, brand, reference, presentation/variant, short description, approved useful attributes and public media.
+- Prices and stock are outside V1.
+- Wappsi/ERP remains pending real validation and must never block core ENVAX.
+- The customer experience remains one integrated product; private capabilities appear after authentication rather than becoming a separate ecommerce/ERP product.
 
 ## Seller extension rules
 
-- Manual user-selected ERP text only; no automatic full-screen scraping.
-- Collect 5–10 real sanitized copied-text examples before implementing parser logic.
-- Use deterministic parsing first.
-- Valid/unambiguous capture may follow the automatic fast path to update ENVAX.
-- Ambiguous/incomplete extraction must require review and must not write silently.
-- Extension writes only through ENVAX API, never directly to D1.
-- Conversion must be idempotent and auditable.
+- Seller/advisor are the same role; technical term is `seller` / `vendedor`.
+- Use explicit seller action and only the commercial context needed.
+- Collect real sanitized ERP examples before implementing parser assumptions.
+- Deterministic parsing first.
+- Ambiguous/incomplete extraction must stop for review and must not write silently.
+- Extension writes only through the ENVAX API.
+- Extension never receives Supabase service-role keys or permanent ERP secrets.
+- Request/order transitions must be idempotent and auditable.
+- `FACTURADO` requires explicit seller/admin confirmation after the external process actually succeeds.
 
 ## Construction architecture
 
-Baseline:
+Current approved V1 baseline:
+
 - TypeScript end-to-end;
 - pnpm workspaces;
 - React + TypeScript + Vite customer/admin apps;
-- Cloudflare Workers REST API;
-- D1 relational database;
-- R2 assets;
-- Queues only for async/retryable jobs;
-- Turnstile selectively;
-- Cloudflare Access preferred for initial internal admin perimeter;
-- modular monolith, not microservices.
+- Supabase Auth for email/password authentication;
+- Supabase PostgreSQL as the operational source of truth;
+- Supabase Storage for public catalog media;
+- Supabase Edge Functions for the versioned REST API;
+- PostgreSQL RLS on private tables;
+- versioned SQL migrations in `supabase/migrations`;
+- modular monolith, not microservices;
+- no separate NestJS/Fastify server required for V1;
+- no mandatory queue/worker in the critical path;
+- Cloudflare may continue hosting the existing landing/QR/static web delivery, but D1/R2 are not the V1 business-data backend.
 
-If proposing a different architecture, document the concrete measured reason before changing this baseline.
+Do not reintroduce D1, R2, anonymous-account persistence, seller routing, price/stock tables or invoice entities without a new explicit architecture decision.
 
 ## Deployment discipline
 
-Landing, customer app, admin, API, seller extension and QR Worker must remain independently deployable.
+Landing, customer app, admin app, Supabase backend, seller extension and QR Worker must remain independently deployable where practical.
 
 Do not destructively move or rewrite the current production landing/QR structure before staging parity and rollback are proven.
 
-Do not commit confidential Wappsi documents, credentials, API keys, invoices, real customer data, `.dev.vars`, or provider secrets to this public repository.
+Do not commit confidential Wappsi documents, credentials, API keys, invoices, real customer data, `.env` files, Supabase service-role keys or provider secrets to this public repository.
 
 ## Build discipline
 
-- Work on branches; do not implement directly on `main`.
+- Work on implementation branches; do not implement directly on `main`.
 - Build one phase at a time using `docs/construction-v1/PHASES-AND-GATES.md`.
 - Do not implement customer-facing visual UI before the relevant design is approved.
-- Every database change uses versioned migrations.
-- Every write endpoint defines validation, authorization, idempotency where needed, and audit behavior.
+- Every database change uses versioned Supabase/PostgreSQL migrations.
+- Every private table requires an explicit RLS decision.
+- Every write endpoint defines validation, authorization, idempotency where needed and audit behavior.
 - Run lint, typecheck, tests and build before declaring a phase complete.
-- Report the gate status as PASS or BLOCKED with evidence.
+- Report gate status as PASS or BLOCKED with evidence.
 
 ## First implementation task
 
-If construction has not started yet, use exactly:
+If construction has not started yet, use:
 
 `docs/construction-v1/BUILD-START-GOAL.md`
 
-and implement Phase 1 Foundation only.
+and implement Foundation only.
+
+Foundation must establish the Supabase local/migration/function structure before catalog or commercial features.
 
 ## Change discipline
 
