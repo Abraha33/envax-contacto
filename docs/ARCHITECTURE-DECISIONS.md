@@ -7,7 +7,7 @@
 - No public cart, checkout, online payment, or marketplace behavior.
 - Named favorites lists replace the old single `Mi selección` concept.
 - Customer CTA can say `Enviar pedido`, while the initial internal state is `solicitud` until seller processing promotes it to `pedido`.
-- Human advisor remains part of the commercial conversion flow.
+- Human seller remains part of the commercial conversion flow.
 
 ## Visual direction
 - Minimalist, editorial, clean, professional B2B.
@@ -87,31 +87,46 @@ Canonical meaning:
 - Later edits to the source list must not alter an already-submitted request.
 - A submitted request does not automatically become an order.
 - Requests must be representable and processable even if Wappsi/ERP is unavailable or has no usable API.
+- Only an internal seller can cancel a formal request in the operational flow; cancellation never deletes its history.
 
 ## Orders
-Canonical transition:
-`solicitud enviada → en atención → pedido confirmado → completado`
+Canonical customer/commercial transition:
+`solicitud enviada → en atención → pedido confirmado → facturado`
 
 Domain separation:
 - `solicitud enviada` and `en atención` belong to the request stage.
-- `pedido confirmado` and `completado` belong to the order stage.
+- `pedido confirmado` begins the order stage.
+- `facturado` means the seller has verified that the order was actually invoiced/formalized as a sale.
 - A `pedido` is created/recognized only after ENVAX/seller processing confirms the commercial operation.
 - ENVAX owns its order concept independently of the ERP.
 - A future ERP identifier/reference may be attached to an ENVAX order, but the order must not depend on Wappsi to exist.
+- A seller may cancel a confirmed order; cancellation does not delete it.
 - V1 intentionally keeps the customer-visible state model small rather than exposing many operational states.
 
-## Seller / advisor operations
-- Human advisor remains part of the conversion flow.
-- The customer does not choose the advisor manually in V1.
+## Internal members and roles
+ENVAX has internal company members.
+
+Canonical V1 roles:
+- `seller` (`vendedor`): commercial operator. The previous word `advisor/asesor` is a customer-facing synonym only; technically `asesor` and `vendedor` mean the same role.
+- `administrator` (`administrador`): internal role with broader management permissions; exact permission matrix is defined later in identity/authorization design.
+
+## Seller operations
+- The seller is the human operator who receives and works commercial requests/orders.
+- The customer does not choose the seller manually in V1.
 - ENVAX assigns or routes requests internally.
-- Exact advisor-assignment logic (automatic, manual, by territory, by customer, queue, or another rule) remains pending.
+- Exact seller-assignment logic (automatic, manual, by territory, by customer, queue, or another rule) remains pending.
+- Seller can move a request into attention, confirm the commercial order, cancel a request, cancel an order, and complete the invoicing workflow.
+- Seller cannot erase commercial history through normal operations.
+- The browser extension supports the seller's invoicing workflow by transforming/copying confirmed WhatsApp/order information into the expected operational format.
+- The seller must review the customer/products/quantities and explicitly confirm before the system records a successful invoicing outcome.
+- The system must not mark an order `facturado` before invoicing is actually confirmed. If an ERP operation fails or remains uncertain, the order must stay pending/not-invoiced.
 - Manual processing is valid while ERP integration remains unverified.
 - Any future extension/integration must fail safely on ambiguous or unmatched data instead of guessing.
 
 ## Commercial contact
 ENVAX supports two valid but distinct paths:
-- `catalog → WhatsApp/email → advisor` as direct contact;
-- `catalog → list → solicitud → advisor → pedido` as the structured ENVAX flow.
+- `catalog → WhatsApp/email → seller` as direct contact;
+- `catalog → list → solicitud → seller → pedido` as the structured ENVAX flow.
 
 Direct WhatsApp/email contact does not automatically create a formal request unless ENVAX later captures that action through an explicit business workflow.
 
@@ -119,7 +134,7 @@ Direct WhatsApp/email contact does not automatically create a formal request unl
 - Promotions are for registered/identified customers, not anonymous visitors.
 - Managed from an administrator panel/module.
 - Admin can target a specific customer or business type.
-- Customer can select one or multiple promotions and continue through WhatsApp/email to an advisor.
+- Customer can select one or multiple promotions and continue through WhatsApp/email to a seller.
 - Promotions must not turn ENVAX into ecommerce: no checkout, payment, or automatic purchase.
 - PWA/push is later scope.
 
