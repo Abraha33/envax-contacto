@@ -30,7 +30,14 @@ Lectura sin login:
 
 Filtros de producto podrán usar query parameters, por ejemplo categoría, marca, segmento, atributo, texto y paginación.
 
-El producto público puede incluir nombre, marca, referencia, variantes/presentaciones, atributos públicos y fotografías/media aprobadas.
+Baseline público aprobado para producto:
+- nombre;
+- marca;
+- referencia;
+- fotografías/media;
+- variantes/presentaciones;
+- descripción corta;
+- atributos públicos útiles según tipo de producto.
 
 No incluye precio ni stock.
 
@@ -156,16 +163,20 @@ Para telemetría propia o puente hacia la herramienta analítica elegida:
 
 Se recomienda aceptar lotes pequeños de eventos para reducir llamadas desde móvil.
 
-Nunca incluir contraseñas, credenciales, contenido privado de mensajes o datos personales innecesarios.
+Eventos/dimensiones V1 pueden cubrir navegación, búsquedas, filtros, productos vistos, listas, solicitudes, clics de WhatsApp/correo, adquisición/campañas, dispositivo/navegador, rendimiento y errores útiles.
 
-La política exacta de retención/consentimiento se define en seguridad/privacidad.
+Nunca incluir contraseñas, credenciales, contenido privado de mensajes, valores sensibles de formularios o datos personales innecesarios.
+
+Retención inicial recomendada/aprobada para eventos detallados: 12 meses. Métricas agregadas pueden conservarse separadamente cuando exista una razón válida y compatible con privacidad.
+
+La implementación concreta de consentimiento/privacidad se termina en la fase de seguridad.
 
 ## 11. Paginación, búsqueda y filtros
 
 Colecciones grandes deben ser paginadas.
 
 Baseline recomendado:
-- `limit`
+- `limit`;
 - cursor/página según la implementación final;
 - filtros explícitos por campos permitidos;
 - ordenamiento limitado a opciones conocidas.
@@ -197,7 +208,13 @@ Las respuestas de error deben tener una estructura estable con código interno, 
 - nunca exponer service-role keys ni secretos de ERP en navegador/extensión;
 - validar payloads en cada endpoint.
 
-## 14. Decisiones fuera de V1
+## 14. ERP / Wappsi
+
+ENVAX V1 debe funcionar correctamente sin Wappsi/ERP.
+
+No se agregará ningún endpoint o dependencia de dominio basado en capacidades no verificadas. Una futura integración se incorporará como adaptador externo únicamente después de validar el contrato real.
+
+## 15. Decisiones fuera de V1
 
 No diseñar endpoints V1 para:
 - precios;
@@ -210,9 +227,8 @@ No diseñar endpoints V1 para:
 
 ## Pendientes deliberados
 
-- 🟡 Campos/atributos finales adicionales del catálogo.
-- 🟡 Retención/consentimiento exactos de Analytics.
-- 🟡 Contrato real con Wappsi/ERP, solo después de validación.
+- 🟡 Implementación exacta de consentimiento/privacidad de Analytics en fase de seguridad.
+- 🟡 Contrato real con Wappsi/ERP, solo después de validación; no bloquea V1.
 
 ## Bloqueos
 
