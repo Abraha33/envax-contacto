@@ -16,9 +16,9 @@ Sin login, el frontend puede pedir al backend información pública del catálog
 - atributos públicos aprobados;
 - segmentos/usos públicos;
 - búsqueda y filtros;
-- media pública únicamente cuando su visibilidad sea aprobada.
+- fotografías/media pública necesaria para presentar el catálogo.
 
-V1 no muestra precios.
+V1 no muestra precios ni stock.
 
 El backend nunca debe devolver datos privados del cliente, promociones privadas, listas persistentes, solicitudes ni pedidos a un visitante anónimo.
 
@@ -26,9 +26,10 @@ Los favoritos anónimos, si existen, viven solo en el dispositivo/navegador y no
 
 ## 2. Identidad del cliente
 
-V1 usa Supabase Auth con autenticación simple basada en contraseña. Para mantener la implementación nativa y sencilla, el identificador de acceso será el correo del cliente y la contraseña.
+V1 usa Supabase Auth con autenticación simple por correo + contraseña. El correo funciona como identificador de acceso; V1 no crea un nombre de usuario separado.
 
 MFA/2FA no es requisito de V1 y podrá añadirse después como refuerzo opcional.
+V1 usa la gestión de sesión segura estándar de Supabase; no requiere un sistema propio de duración de sesiones para lanzamiento.
 
 Después de un login válido, el frontend puede pedir:
 - identidad/perfil básico del cliente;
@@ -39,6 +40,14 @@ Después de un login válido, el frontend puede pedir:
 - pedidos propios y su estado.
 
 Regla obligatoria: un cliente solo puede leer o modificar recursos que le pertenecen. El backend debe comprobarlo siempre; el frontend no es una barrera de seguridad.
+
+V1 no intenta vincular automáticamente pedidos históricos anteriores a ENVAX con cuentas nuevas. La visibilidad garantizada comienza con pedidos creados/reconocidos por ENVAX después de existir la cuenta.
+
+Perfil comercial mínimo aprobado:
+- nombre del negocio;
+- nombre/contacto;
+- correo;
+- tipo/segmento de negocio.
 
 ## 3. Listas
 
@@ -85,20 +94,26 @@ Estados de excepción permitidos según reglas internas:
 
 V1 tiene un único vendedor. Todas las solicitudes y pedidos comerciales llegan a ese vendedor; no existe lógica de asignación.
 
-El frontend interno del vendedor puede, como mínimo:
-- consultar todas las solicitudes y pedidos V1 que debe atender;
-- consultar la información mínima necesaria del cliente para realizar el trabajo comercial;
+El vendedor puede:
+- consultar todas las solicitudes y pedidos V1;
+- consultar los datos del cliente necesarios para vender;
 - pasar una solicitud a `EN_ATENCION`;
 - confirmar un pedido;
 - cancelar una solicitud;
 - cancelar un pedido;
 - confirmar que la facturación externa fue completada y pasar el pedido a `FACTURADO`;
-- utilizar el flujo soportado por la extensión del navegador.
+- utilizar el flujo soportado por la extensión del navegador;
+- consultar historial comercial necesario para su trabajo.
 
-El vendedor no puede borrar el historial comercial.
-El vendedor no recibe automáticamente permisos administrativos sobre catálogo, configuración, usuarios u otras áreas por el hecho de ser el único vendedor.
-
-La frontera exacta de permisos del vendedor fuera de este flujo comercial es el principal punto de autorización todavía por cerrar.
+El vendedor no puede:
+- crear, editar o eliminar productos;
+- administrar categorías o marcas;
+- administrar promociones;
+- crear o administrar usuarios/roles;
+- modificar configuración del sistema;
+- usar capacidades administrativas de Analytics;
+- borrar solicitudes, pedidos o historial comercial;
+- borrar auditoría.
 
 ## 7. Administrador
 
@@ -111,9 +126,11 @@ Puede gestionar y supervisar, entre otras áreas:
 - clientes;
 - solicitudes y pedidos;
 - configuración del sistema;
+- Analytics administrativo;
 - operaciones disponibles en V1.
 
 Las acciones administrativas sensibles deben quedar auditadas.
+Como regla operativa normal, ni siquiera el administrador elimina historial comercial o auditoría; se prefieren cancelar, archivar o desactivar.
 
 ## 8. Promociones
 
@@ -135,9 +152,17 @@ El frontend puede emitir eventos de analítica sobre navegación y comportamient
 - envío de solicitud;
 - navegación por dispositivo/origen/campaña.
 
+La estrategia V1 es capturar ampliamente comportamiento útil desde el lanzamiento, con estructura suficiente para análisis futuros.
+
 La analítica anónima no equivale a una cuenta de cliente ni autoriza acceso privado.
 
-Datos sensibles, credenciales, contenidos privados y campos restringidos no deben enviarse como eventos de analítica.
+Nunca deben enviarse a Analytics:
+- contraseñas o credenciales;
+- valores sensibles de formularios;
+- contenido privado de mensajes;
+- información personal innecesaria.
+
+Retención y consentimiento exactos se terminan de definir en la fase de seguridad/privacidad.
 
 ## 10. Errores y validaciones
 
@@ -165,21 +190,19 @@ Nunca confiar en el frontend para:
 
 El backend es la autoridad para esas decisiones.
 
-## 12. Pendientes deliberados
+## 12. Pendientes deliberados restantes
 
-- 🟡 Frontera exacta de permisos del vendedor fuera del flujo comercial ya aprobado.
-- 🟡 Visibilidad pública definitiva de media y campos adicionales de producto.
-- 🟡 Política exacta de analítica, consentimiento y retención.
-- 🟡 Stock y cualquier integración futura con ERP, si llega a existir.
-- 🟡 Vinculación segura de pedidos históricos con cuentas nuevas, si ENVAX necesita hacerlo.
-- 🟡 Datos exactos del perfil comercial del cliente.
-- 🟡 Duración y política de expiración de sesiones.
+- 🟡 Esquema final de campos/atributos adicionales del producto, más allá del baseline ya aprobado.
+- 🟡 Política exacta de consentimiento y retención de Analytics.
+- 🟡 Integración futura con ERP/Wappsi, únicamente después de validación real.
 
 Fuera de alcance V1:
 - precios;
 - motor de precios;
+- stock como dato garantizado de catálogo;
 - facturación electrónica dentro de ENVAX;
-- asignación de múltiples vendedores.
+- asignación de múltiples vendedores;
+- vinculación automática de pedidos históricos previos a ENVAX.
 
 ## Bloqueos
 
