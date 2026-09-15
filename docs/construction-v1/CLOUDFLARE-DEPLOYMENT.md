@@ -1,199 +1,117 @@
 # ENVAX — Cloudflare Deployment V1
 
-## 1. Decision
+## 1. Current role
 
-ENVAX V1 will stay Cloudflare-first to reduce operational burden and preserve the user's existing Cloudflare setup.
+Cloudflare remains useful for the existing ENVAX public edge/delivery setup, but it is **not** the V1 operational backend authority.
 
-Current recommended platform baseline (September 2026):
-- Cloudflare Workers + Static Assets for web apps;
-- Cloudflare Vite plugin for React/Vite apps;
-- D1 for relational operational data;
-- R2 for unstructured product/media assets;
-- Queues for retryable/background jobs only when needed;
-- Turnstile for abuse-prone public forms;
-- Cloudflare Access preferred for internal Admin protection;
-- existing QR Worker retained independently.
+Canonical backend is Supabase:
+- Auth;
+- PostgreSQL;
+- RLS;
+- Storage;
+- Edge Functions.
 
-Do not start new Workers Sites deployments. Cloudflare currently recommends Workers Static Assets for new full-stack/static Worker applications.
+Cloudflare must not introduce a parallel D1/R2 copy of ENVAX business data.
 
-## 2. Why this fits ENVAX
+## 2. What Cloudflare may host
 
-- one-maintainer friendly;
-- no server/VPS maintenance;
-- React SPA and Worker API can run in the same Cloudflare runtime model;
-- independent deployables are easy to keep separate;
-- D1 fits relational favorites/orders/promotions data;
-- R2 lets us control media access separately from catalog metadata;
-- Queues can isolate slow/retryable provider calls without blocking customer requests.
+Current/possible Cloudflare responsibilities:
+- existing landing/domain/DNS/CDN;
+- static customer app delivery if chosen;
+- static admin app delivery if chosen;
+- existing QR Worker;
+- optional Cloudflare Access perimeter for internal admin defense-in-depth;
+- optional Turnstile or edge protections if later justified.
 
-## 3. Deployment units
+These are delivery/security helpers, not business source of truth.
 
-Keep separate Cloudflare projects/scripts for:
+## 3. Existing landing safety
 
-1. Landing
-2. Customer app
-3. Admin app
-4. API Worker
-5. QR Worker
-6. Async/Queue consumer Worker if introduced later
+The current root landing and QR flow are production-sensitive.
 
-The exact DNS names are not frozen yet. A possible structure is:
+Migration procedure if/when frontend structure changes:
+1. leave production route untouched;
+2. create/copy new app structure;
+3. deploy staging/preview;
+4. compare behavior and destinations;
+5. verify rollback;
+6. switch production only after parity;
+7. remove old duplicates in a later cleanup.
 
-```text
-www.<domain>       -> landing
-catalogo.<domain>  -> customer app
-admin.<domain>     -> admin
-api.<domain>       -> API Worker
-qr.<domain>        -> QR Worker
-```
+Foundation does not switch the live landing.
 
-A path-based alternative is allowed if preferred later. Do not hard-code domains into business logic; use environment configuration.
+## 4. Customer/Admin web deployment
 
-## 4. Existing landing safety
+React + Vite apps may be deployed through Cloudflare static/Workers assets or another approved static host.
 
-The current landing must remain independently deployable.
+Business logic remains behind the Supabase API and Auth/RLS boundaries.
 
-Migration procedure:
-1. leave current production route untouched;
-2. create `apps/landing` copy;
-3. staging deploy from that directory;
-4. compare HTML/behavior/QR destination/forms;
-5. switch Cloudflare root/build configuration only after parity;
-6. keep rollback route until verification is complete.
-
-## 5. Workers Static Assets / Vite
-
-For new React customer/admin apps use:
-- React + Vite;
-- `@cloudflare/vite-plugin`;
-- Wrangler config per deployable app;
-- SPA fallback for customer/admin client-side routes where appropriate;
-- Worker routes for API paths only when frontend+API are intentionally co-located.
-
-ENVAX still prefers a distinct API deployable for clearer boundaries because landing, customer, admin and extension all consume it.
-
-## 6. D1 resources
-
-Create independent D1 databases:
-- local emulator/test;
-- staging;
-- production.
-
-Never point staging to production D1.
-
-Database changes:
-- migrations in Git;
-- staging apply first;
-- verify;
-- production apply;
-- record migration/commit in release notes.
-
-D1 Time Travel/backups provide recovery capabilities, but a documented restore drill is still required before production readiness.
-
-## 7. R2 resources
-
-Separate staging and production buckets.
-
-Recommended key convention:
-
-```text
-products/{productId}/{assetId}/{filename}
-promotions/{promotionId}/{assetId}/{filename}
-internal/... 
-```
-
-Object visibility is not inferred from path alone. D1 metadata/policy decides whether the API returns public, customer-scoped, or internal access.
-
-For protected assets use a Worker-controlled response or time-limited signed/presigned access. Never expose R2 API credentials to the browser.
-
-## 8. Queues
-
-Introduce a Queue when the task is retryable/background, e.g.:
-- email send;
-- future provider message;
-- promotion fan-out;
-- future ERP synchronization;
-- batched analytics.
-
-Do not queue basic catalog reads or synchronous favorites writes.
-
-Because Cloudflare Queues are at-least-once delivery, every consumer must use event/job IDs for deduplication/idempotency. Configure a dead-letter queue for important outbound/integration jobs before production.
-
-## 9. Turnstile
-
-Use Turnstile selectively on abuse-prone public flows:
-- anonymous account/recovery when risk threshold is met;
-- verification;
-- excessive request submission.
-
-The browser widget alone is not validation; the server must verify the token.
-
-Do not make every catalog navigation step show a challenge.
-
-## 10. Cloudflare Access
-
-For initial internal admin:
-- restrict by approved ENVAX operator identity/email;
-- use Access as perimeter protection;
-- still enforce application authorization for admin actions.
-
-Seller extension authentication should use ENVAX-issued short-lived pairing/session credentials, not a permanent Access/service secret embedded in the extension.
-
-## 11. Environment variables and secrets
-
-Each deployable has explicit bindings/configuration.
-
-Examples of non-secret config:
-- API base URL;
+Public client configuration may contain only public values such as:
+- Supabase project URL;
+- Supabase publishable/anon key intended for browser use;
 - environment name;
-- public Turnstile sitekey;
-- feature flags.
+- public analytics/feature configuration.
 
-Secrets:
-- provider API keys;
-- Turnstile secret;
-- R2 signing credentials if using S3 presign;
-- future ERP credentials;
-- internal webhook secrets.
+Never expose service-role/secret keys.
 
-Store secrets using Cloudflare/CI secret mechanisms, not Git.
+## 5. Supabase environment separation
 
-## 12. CI/CD
+Use distinct local/staging/production environments or projects according to the final infrastructure plan.
 
-Preferred path:
-- GitHub PR → CI;
-- merge approved code;
-- staging deployment automatically or explicitly;
+Database schema changes are applied from versioned migrations.
+
+Do not use Cloudflare D1 as a staging mirror for business records.
+
+## 6. QR Worker
+
+Keep existing `qr-worker/` independent until dedicated regression/migration work is approved.
+
+QR analytics/source attribution may continue to route traffic into ENVAX, but commercial/customer state belongs to Supabase.
+
+## 7. Cloudflare Access
+
+Optional defense-in-depth for admin:
+- restrict internal admin hostname/app to approved operator identities;
+- still require Supabase/application role authorization;
+- do not treat Access alone as business authorization.
+
+## 8. Turnstile/rate protection
+
+May be used selectively on abuse-prone public flows if real abuse or security review justifies it.
+
+Normal catalog browsing should remain low-friction.
+
+Any Turnstile token must be verified server-side.
+
+## 9. Secrets
+
+Cloudflare environment/CI may store only secrets needed by Cloudflare-hosted components.
+
+Supabase service-role/ERP/provider secrets required by backend functions belong in the corresponding secure server environment and never in frontend bundles, Git or extension code.
+
+## 10. CI/CD
+
+Preferred pattern:
+- PR → CI;
+- staging/preview deployment;
 - smoke tests;
-- production deploy after gate.
+- production after phase gate;
+- path-specific deployment so docs/extension changes do not redeploy unrelated apps.
 
-Do not configure every directory change to deploy every application. Use path filters or app-specific workflows so editing `docs/` or extension code cannot unexpectedly redeploy the landing.
+## 11. Infrastructure inventory
 
-## 13. Infrastructure inventory
+Before production maintain a non-secret inventory of:
+- domains/DNS;
+- landing deployment;
+- customer/admin deployment locations;
+- QR Worker routes;
+- Supabase project/environment identifiers;
+- Storage buckets;
+- Edge Functions;
+- optional Access/Turnstile resources.
 
-Before production, create `docs/operations/CLOUDFLARE-INVENTORY.md` recording without secrets:
-- zones/domains;
-- DNS records used by ENVAX;
-- Worker names;
-- routes/custom domains;
-- D1 database names/IDs;
-- R2 bucket names;
-- Queue names;
-- Turnstile widget names;
-- Access applications/policies;
-- environment ownership.
+## 12. Superseded Cloudflare backend baseline
 
-This becomes the cleanup source for the currently cluttered Cloudflare account.
+The prior plan to use Cloudflare Workers + D1 + R2 + Queues as ENVAX's core application backend is superseded by the approved Supabase architecture.
 
-## 14. Official references
-
-- Workers Static Assets: https://developers.cloudflare.com/workers/static-assets/
-- React + Vite on Workers: https://developers.cloudflare.com/workers/framework-guides/web-apps/react/
-- Cloudflare Vite plugin: https://developers.cloudflare.com/workers/vite-plugin/
-- D1: https://developers.cloudflare.com/d1/
-- D1 migrations: https://developers.cloudflare.com/d1/reference/migrations/
-- R2 presigned URLs: https://developers.cloudflare.com/r2/api/s3/presigned-urls/
-- Queues: https://developers.cloudflare.com/queues/
-- Turnstile: https://developers.cloudflare.com/turnstile/
-
-Validate product limits/pricing again before production because platform limits can change.
+Do not implement parallel D1 business tables or R2 catalog-media authority unless a future architecture decision explicitly replaces Supabase.
