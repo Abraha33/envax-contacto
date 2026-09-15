@@ -4,61 +4,50 @@
 
 All direct Wappsi/ERP integration remains **PENDING REAL VALIDATION**.
 
-ENVAX construction must proceed without assuming that we can reliably:
-- read products/prices;
-- identify customers;
-- read full invoices;
-- create orders;
-- read order status;
-- use production credentials/URLs.
+Core ENVAX construction proceeds without assuming we can read/write products, customers, orders, invoices, prices or stock through Wappsi.
 
-Existing API documentation is useful reference, not production proof.
+Existing ERP documentation is reference material, not production proof.
 
-## 2. Temporary operating bridge
+## 2. Boundary
 
-Until ERP integration is validated, the seller browser extension is the preferred bridge for reducing duplicate manual entry.
+ERP validation is a parallel track, not a dependency of the core catalog/commercial MVP.
 
-Core rule: **manual text selection only**.
+Core ENVAX must work as:
 
-The extension must not scrape the entire ERP screen automatically.
+`Customer → formal solicitud → single seller → confirmed pedido → external process → seller confirms FACTURADO`
 
-## 3. Seller flow
+## 3. Extension role
 
-```text
-Seller opens relevant ERP document
-→ manually selects relevant text
-→ opens ENVAX extension
-→ Capturar selección
-→ deterministic parser extracts candidate fields
-→ exact ENVAX solicitud match
-→ if complete/unambiguous: automatic validated conversion
-→ if ambiguous: show review/correction, no silent write
-→ API creates/links pedido
-→ solicitud becomes converted
-→ customer sees Pedido confirmado
-```
+Until direct ERP integration is validated, the browser extension may reduce repeated manual work.
 
-The phrase “automatic” means the seller does not have to update ENVAX separately after a valid capture. It does **not** mean the extension may write ambiguous data without validation.
+Rules:
+- one V1 seller; no assignment engine;
+- explicit seller action;
+- no silent whole-page scraping;
+- deterministic parsing/normalization first;
+- ambiguous/incomplete extraction stops for human review;
+- writes only through authenticated ENVAX API;
+- no service-role or permanent ERP secrets in bundle.
 
-## 4. Required real data before parser implementation
+## 4. Required real data before parser logic
 
-Collect at least 5–10 sanitized real copied-text samples from Wappsi covering as many as possible:
-- customer/business block;
-- quotation or pedido view;
-- product lines;
-- quantity;
-- reference/SKU;
-- price if visible/needed;
-- document identifier;
-- status/date if relevant.
+Collect at least 5–10 sanitized real copied-text/context examples from the actual seller workflow.
 
-Do not invent the ERP text format in code.
+Cover, where relevant:
+- external customer/business identifier;
+- external order/document view;
+- product references/SKUs;
+- quantities;
+- external document identifier;
+- external success/status evidence.
 
-Store fixtures with fake/sanitized business/customer values if the repository is public.
+Do not invent ERP text formats.
+
+Prices may appear in external examples but are not part of the ENVAX V1 catalog/price domain and should not be persisted without a future explicit decision.
 
 ## 5. Parser architecture
 
-Keep parsing in a pure package independent from Chrome APIs:
+Keep parser logic pure and testable separately from browser APIs:
 
 ```text
 extensions/seller/
@@ -70,111 +59,77 @@ extensions/seller/
     └── fixtures/
 ```
 
-Parser returns:
-- extracted fields;
-- confidence/validation result;
-- missing required fields;
+Parser output:
+- extracted candidate fields;
+- validation/confidence result;
+- missing fields;
 - ambiguity list.
 
-Use deterministic patterns first. Do not introduce an LLM parser until real samples prove deterministic parsing insufficient and a privacy/security review approves external processing.
+Do not introduce LLM parsing until real evidence shows deterministic parsing is insufficient and privacy/security review approves any external processing.
 
-## 6. Minimum normalized payload
+## 6. Server authority
 
-Candidate payload:
-- ENVAX solicitud reference;
-- ERP document type;
-- ERP document ID;
-- customer/business reference if available;
-- line references/SKUs;
-- quantities;
-- authoritative price fields only if actually present and needed;
-- raw selected text hash;
-- extension version.
+The extension does not directly decide business state.
 
-Do not store raw clipboard text by default.
+Server validates:
+- seller/admin authenticated role;
+- target ENVAX request/order exists;
+- current state is valid;
+- matching/context is unambiguous;
+- idempotency key is safe;
+- no conflicting order/state already exists.
 
-## 7. Server conversion rules
+## 7. Request → order
 
-The API accepts conversion only when:
-- seller is authenticated;
-- solicitud exists;
-- seller is allowed to act on it;
-- request has convertible state;
-- required ERP fields validate;
-- idempotency key is new or maps to the same conversion;
-- no conflicting order already exists.
+When the seller confirms a request as an order, ENVAX server atomically:
+1. validates request/current state;
+2. creates exactly one order;
+3. copies historical order-item snapshots;
+4. updates request state;
+5. records audit evidence.
 
-On success:
-1. create `extension_ingestion`;
-2. create/link exactly one `order`;
-3. snapshot required order information;
-4. mark solicitud `converted`;
-5. emit status/audit event;
-6. return confirmed order reference.
+Retry cannot create a second order.
 
-## 8. Authentication
+## 8. External invoicing / FACTURADO
 
-Do not embed a permanent API key.
+ENVAX does not create electronic invoices.
+
+After the seller completes external invoicing/formalization, the seller explicitly confirms success in ENVAX.
+
+Only then may server transition the order to `INVOICED/FACTURADO` and write audit evidence.
+
+An external screen, copied identifier or parser success alone is insufficient.
+
+## 9. Authentication
 
 Preferred V1:
-- seller signs in to ENVAX internal environment;
-- extension uses a short-lived pairing/session token;
-- token scopes only seller ingestion endpoints;
-- server can revoke seller session.
+- seller signs in through Supabase Auth;
+- extension uses seller-authenticated ENVAX API context;
+- no permanent API keys;
+- server enforces seller role;
+- service-role credentials remain server-only.
 
-## 9. Google Sheet
+## 10. ERP validation stages
 
-Google Sheet is optional interim operations support, not source of truth.
+Track separately:
 
-If retained:
-- ENVAX D1 remains authority;
-- Sheet is projection/export or operational convenience;
-- failures writing Sheet do not roll back a valid ENVAX request/order;
-- never use Sheet as the only copy of order status.
+`ERP UNKNOWN → AUTH VALIDATED → READ VALIDATED → WRITE VALIDATED → SECURITY/RELIABILITY VALIDATED → ADAPTER READY`
 
-## 10. Direct ERP adapter later
+Only capabilities proven against the real environment advance.
 
-Define `ErpGateway` interface so extension can eventually be bypassed.
+## 11. Future direct ERP adapter
 
-Example conceptual methods:
-- `findCustomer(...)`
-- `getProducts(...)`
-- `getCustomerInvoices(...)`
-- `createOrder(...)`
-- `getOrderStatus(...)`
+If validated:
 
-Keep the active implementation as `DisabledErpGateway`/mock until real validation passes.
+`ENVAX domain → ErpGateway adapter → Wappsi/ERP`
 
-When Wappsi is proven:
-- build adapter in server only;
-- test in isolated environment;
-- compare adapter result with seller workflow;
-- roll out gradually;
-- keep extension fallback during transition.
+No Wappsi-specific DTOs should leak across the whole core domain.
 
-## 11. ERP validation gates
+## 12. Safety rules
 
-### `ERP READ VALIDATED`
-Real environment and credentials can retrieve required data reliably.
-
-### `ERP CUSTOMER/INVOICE VALIDATED`
-Can identify a customer and retrieve invoice details required by product.
-
-### `ERP ORDER WRITE VALIDATED`
-Can create a test order safely and retrieve resulting identifier/status.
-
-### `ERP RELIABILITY VALIDATED`
-Error handling, rate limits, authentication, retries, duplicate protection and production permissions are known.
-
-### `ERP ADAPTER READY`
-Only after all required gates pass is direct integration allowed into production request/order flow.
-
-## 12. Non-negotiable safety
-
-- no ERP secret in frontend/extension;
-- no full-screen silent scraping;
-- no invented parser format;
-- ambiguous input does not write;
-- conversion is idempotent;
-- every conversion auditable;
-- Wappsi failure can never make core catalog/favorites unavailable.
+- no real ERP credentials/data in public Git;
+- no raw clipboard text stored by default;
+- no price/stock assumptions added to V1;
+- no invoice files/entities added to ENVAX;
+- external failure cannot mark commercial success;
+- extension can be disabled without breaking catalog, lists, requests or order history.
