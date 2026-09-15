@@ -2,252 +2,280 @@
 
 ## 1. Architectural style
 
-Use a **modular monolith at the application level**, deployed on Cloudflare as a small set of independently deployable components. This keeps one-maintainer operations simple while preserving module boundaries.
+Use a **modular monolith** around Supabase.
 
-Do not start with microservices.
+Do not start with microservices, Kubernetes, a separate Node server or a second operational database.
 
 ## 2. Logical view
 
 ```mermaid
 graph TD
-  U[Customer] --> L[Landing]
-  L --> C[Customer App]
-  C --> A[ENVAX REST API]
-  P[Customer Portal] --> A
+  U[Visitor / Customer] --> L[Landing / Customer App]
+  L --> A[ENVAX REST API /api/v1]
   AD[Admin App] --> A
   E[Seller Extension] --> A
-  A --> D[(D1)]
-  A --> R[(R2)]
-  A --> Q[Queues]
-  Q --> J[Async Worker / Jobs]
-  J --> EM[Email Adapter]
-  J --> WA[WhatsApp Adapter]
-  A --> EG[ERP Gateway]
+  A --> AU[Supabase Auth]
+  A --> D[(Supabase PostgreSQL)]
+  A --> S[Supabase Storage]
+  D --> RLS[RLS Policies]
+  A --> AN[Analytics Sink]
+  A --> EG[ERP Adapter]
   EG -. disabled until validated .-> W[Wappsi / future ERP]
   QR[Existing QR Worker] --> L
 ```
 
-The browser apps and extension never connect directly to D1/R2 with privileged credentials.
+Customer/admin apps and the extension never receive privileged database/service-role credentials.
 
 ## 3. Deployable components
 
-### `apps/landing`
+### Current landing
 
-Purpose: lightweight public entry point and QR destination.
-
-Responsibilities:
-- brand/contact landing;
-- collect business name and business type when entering catalog;
-- redirect/handoff into customer app;
-- remain independently deployable.
-
-It must not contain core business logic.
+Preserve the existing production landing/QR behavior until a dedicated migration proves staging parity and rollback.
 
 ### `apps/customer`
 
-One customer application that can render:
-- catalog;
-- anonymous mode;
-- favorites;
-- pedido request flow;
-- later portal/order views;
-- later promotions.
+One customer application for:
+- public catalog;
+- search/filter/product exploration;
+- local anonymous convenience state if implemented;
+- authenticated persistent lists;
+- formal request flow;
+- `Mis pedidos` and order detail/status;
+- eligible promotions.
 
-Do not create separate products called “catalog” and “portal”. Portal behavior is an authenticated mode of the same customer experience.
+Private capabilities appear after authentication inside the same ENVAX experience.
 
 ### `apps/admin`
 
-Internal ENVAX operations:
-- incoming solicitudes/pedidos;
-- later customers;
+Internal administration and operations:
+- catalog management;
+- customer/commercial supervision;
+- requests/orders;
 - promotions;
-- basic configuration/business types;
-- operational audit views.
+- internal member management;
+- configuration;
+- analytics/audit views.
 
-Protect internal access strongly. Prefer Cloudflare Access for the first internal deployment plus application RBAC where required.
+Administrator has full V1 authority; sensitive actions remain audited.
 
-### `services/api`
+### Supabase Edge Function API
 
-Single REST API for V1. Modules:
-- Identity
-- Business Types
-- Catalog
-- Favorites
-- Order Requests
-- Orders
-- Seller Assignment
-- Promotions
-- Customer Portal
-- Admin
-- Notifications/Handoffs
-- Audit
-- Integrations
+Use one logical versioned REST API, recommended path:
+
+`supabase/functions/api-v1/`
+
+Internal modules:
+- catalog;
+- customers;
+- lists;
+- requests;
+- orders;
+- promotions;
+- seller;
+- admin;
+- analytics;
+- audit;
+- extension;
+- integrations.
 
 ### `extensions/seller`
 
-Internal browser extension. It only captures text explicitly selected by a seller and sends normalized/validated data through the API.
+Internal browser extension using the normal authenticated seller context. It does not receive Supabase service-role keys or permanent ERP credentials.
 
-### `workers/qr`
+### Existing QR Worker
 
-Current QR Worker remains isolated. Migration from existing `qr-worker/` can happen after regression tests; no need to rename it before foundation is stable.
+Keep the current QR Worker isolated until any migration has regression evidence.
 
-## 4. Storage
+## 4. Supabase platform responsibilities
 
-### D1
+### Auth
 
-D1 is the V1 source of truth for ENVAX operational data:
-- identities and sessions;
-- business profiles/types;
-- catalog normalized data imported from canonical source;
-- favorite lists/items;
-- solicitudes and pedidos;
-- statuses and audit trail;
-- promotion definitions/targets/interests;
-- admin/seller configuration that is not secret.
+V1 login is email + password.
 
-Use migrations committed to Git. No production schema edits by hand.
+Roles at application level:
+- `CUSTOMER`;
+- `SELLER`;
+- `ADMIN`.
 
-### R2
+V1 has exactly one seller.
 
-R2 stores unstructured product/media assets. Asset metadata and visibility rules remain in D1.
+### PostgreSQL
 
-Because public image visibility is not fully approved, use a policy layer:
-- `public`: safe for direct/cached delivery;
-- `customer`: visible only after an ENVAX customer/anonymous session is established;
-- `internal`: admin/seller only.
+Operational source of truth for:
+- user/customer profiles;
+- catalog metadata;
+- persistent favorite lists;
+- requests and snapshots;
+- orders and snapshots;
+- promotions;
+- audit records;
+- idempotency records;
+- optional first-party analytics events if retained locally.
 
-Do not hard-code “all images public”.
+Every schema change is a versioned migration committed to Git.
 
-### Queues
+### Row Level Security
 
-Do not put Queues in the critical path for basic reads. Use them for:
-- outbound email/provider calls;
-- promotion fan-out;
-- retryable integration jobs;
-- optional analytics/event batching;
-- future ERP synchronization.
+RLS is mandatory for private customer data and any table directly exposed through Supabase data APIs.
 
-Consumers must be idempotent because queue delivery can repeat.
+At minimum:
+- Customer A cannot read/write Customer B resources;
+- customers cannot change commercial states;
+- seller receives only commercial permissions;
+- admin receives authorized V1 management access;
+- audit history is not editable by customers.
+
+### Storage
+
+Supabase Storage holds public catalog photos/media.
+
+Baseline:
+- public read only for approved catalog media;
+- uploads/changes restricted to admin/server-authorized flows;
+- no invoices, secrets or fiscal documents in public storage.
 
 ## 5. Identity model
 
-### Anonymous account
+### Anonymous visitor
 
-When a customer enters with business name + business type:
-1. API creates `anonymous_account`.
-2. API creates a random server-side session.
-3. Browser receives a Secure + HttpOnly + SameSite cookie.
-4. ENVAX can optionally offer “Crear/guardar acceso anónimo”.
-5. A random recovery credential is generated; store only its hash server-side.
-6. On another device, user provides/scans the recovery credential to create a new session for the same anonymous account.
+Anonymous visitor:
+- can browse the public catalog;
+- may use local browser favorites if the frontend offers them;
+- does not get a persisted ENVAX business account/profile automatically;
+- cannot access persistent lists, private promotions, formal requests or orders.
 
-Never use IP address as customer identity.
+### Authenticated customer
 
-### Portal upgrade
+Supabase Auth account enables persistence.
 
-A verified customer account links to the existing anonymous account. Upgrade must preserve favorites and pedido history.
+Minimal ENVAX business profile:
+- business name;
+- contact name;
+- email;
+- business type/segment.
 
-Portal contact verification is provider-adapter based. Do not promise WhatsApp OTP until a real provider/API is available.
+No anonymous-account upgrade/merge architecture is required in V1.
 
 ## 6. Favorites domain
 
-Entities:
+Persistent entities:
 - favorite list;
-- favorite item.
+- favorite list item.
 
 Rules:
-- one account may have many named lists;
-- list names are customer-defined;
-- no totals, taxes, checkout, payment or cart semantics;
-- item references product/variant but remains independent of later requests;
-- deleting a favorite list never deletes a previously submitted solicitud/pedido.
+- authenticated customer only;
+- one customer can own many named lists;
+- list item references a concrete variant/presentation;
+- no cart totals, tax, checkout or payment semantics;
+- quantity belongs in request preparation, not favorites;
+- deleting/deactivating a list never deletes prior commercial history.
 
 ## 7. Solicitud → pedido domain
 
-Keep `order_requests` and `orders` distinct.
+Keep `requests` and `orders` distinct.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Submitted
-  Submitted --> Assigned
-  Assigned --> InAttention
-  InAttention --> Converted
-  Converted --> OrderConfirmed
-  OrderConfirmed --> Completed
-  Submitted --> Cancelled
-  Assigned --> Cancelled
+  [*] --> SENT
+  SENT --> IN_ATTENTION
+  IN_ATTENTION --> ORDER_CONFIRMED
+  ORDER_CONFIRMED --> FACTURADO
+  SENT --> CANCELLED
+  IN_ATTENTION --> CANCELLED
+  IN_ATTENTION --> CLOSED_NO_ORDER
+  ORDER_CONFIRMED --> ORDER_CANCELLED
 ```
 
-Customer labels are derived, not stored as free text:
-- Submitted / Assigned → `Solicitud enviada`
-- InAttention → `En atención`
-- Converted / OrderConfirmed → `Pedido confirmado`
-- Completed → `Completado`
+Rules:
+- formal request requires authenticated customer;
+- request items are historical snapshots;
+- one V1 request creates zero or one order;
+- request→order creation is transactional and idempotent;
+- `FACTURADO` means seller/admin confirmed external invoicing succeeded;
+- ENVAX has no invoice entity in V1.
 
-On request submission, snapshot the product lines used for the request. Future catalog edits must not rewrite historical requests.
+## 8. Seller model
 
-When extension/ERP conversion succeeds:
-- create/link one `order` from one `order_request`;
-- mark request converted;
-- update customer-visible state;
-- write audit event;
-- enforce idempotency so retry cannot create a second order.
+V1 has exactly one seller.
 
-## 8. Seller assignment
+Therefore:
+- no assignment table/policy is required for business routing;
+- no territory/load-balancing/queue logic;
+- customer does not choose seller.
 
-Assignment is a server-side policy.
+Seller permissions:
+- read required customer/commercial context;
+- start attention;
+- confirm order;
+- cancel request/order;
+- confirm `FACTURADO`;
+- use extension;
+- read necessary commercial history.
 
-V1 baseline:
-- only active sellers are eligible;
-- choose seller with the fewest open assignments;
-- deterministic tie-break using stable rotation;
-- if no seller is eligible, leave request `unassigned` and raise an operational flag.
+Seller cannot administer catalog, users/roles, promotions, system configuration or admin analytics.
 
-Keep the policy behind an interface so business rules can change without changing request creation.
+## 9. Promotions
 
-## 9. Promotions domain
+Admin creates/manages promotions.
 
-Admin creates a promotion and targets:
-- one specific customer; or
-- one/more business types.
+Targeting may use:
+- specific customers;
+- business types/segments;
+- related products/variants.
 
-Promotion targeting is server-side. The customer app only displays promotions the API says are eligible.
+Promotion is commercial content/interest, not checkout or price engine.
 
-Selecting promotions creates `promotion_interest` records and a handoff context; it does not create a purchase.
+## 10. API architecture
 
-## 10. Integration boundaries
+Use Supabase Edge Functions in TypeScript for `/api/v1`.
 
-Define interfaces:
+Prefer a small router inside one `api-v1` function for V1. Keep domain handlers/services separated by module.
 
-- `CatalogSource`
-- `AssetStore`
-- `EmailProvider`
-- `WhatsAppProvider`
-- `ErpGateway`
-- `AnalyticsSink`
-- `SellerAssignmentPolicy`
+API validates:
+- session/JWT;
+- role;
+- ownership;
+- payload schema;
+- valid state transition;
+- idempotency where needed.
 
-Business modules depend on interfaces, not vendors.
+Complex multi-write commercial transitions should be implemented atomically using PostgreSQL functions/RPC or another transaction-safe server-side mechanism.
 
-`ErpGateway` is disabled/mock-backed until Wappsi validation passes.
+## 11. Integration boundaries
 
-## 11. Failure rules
+Keep interfaces/adapters for:
+- EmailProvider;
+- WhatsApp handoff generation;
+- ErpGateway;
+- AnalyticsSink.
+
+ERP adapter remains disabled/manual until Wappsi validation passes.
+
+External failures must not corrupt ENVAX commercial state.
+
+## 12. Failure rules
 
 - API write endpoints return stable error codes.
-- User-facing requests use idempotency keys.
-- Async consumers deduplicate by event/job ID.
-- External provider failure cannot silently mark work successful.
-- Ambiguous extension extraction cannot transition a solicitud.
+- Commercial writes use idempotency where retries can duplicate effects.
+- External provider failure cannot silently mark success.
+- Ambiguous extension data cannot transition records.
 - All state transitions are validated server-side.
+- Analytics failure does not block catalog/commercial flow.
 
-## 12. Non-functional goals
+## 13. Non-functional goals
 
 - simple enough for one maintainer;
-- independently deployable components;
-- responsive web first;
-- accessible keyboard/touch interactions;
-- no secret in browser bundles;
-- structured logs and request IDs;
-- staging separate from production data;
-- database restore procedure tested before production gate;
-- replace extension with ERP adapter later without changing customer-facing contracts.
+- TypeScript end-to-end;
+- reproducible local Supabase environment;
+- migrations in Git;
+- staging separate from production;
+- no secrets in browser bundles;
+- structured logs/request IDs;
+- restore drill before production;
+- independently deploy frontends/extension/QR without forcing business-data duplication.
+
+## 14. Explicitly rejected legacy baseline
+
+The previous construction plan used Cloudflare D1/R2 and persisted anonymous accounts. That baseline is superseded.
+
+Do not build V1 operational data on D1/R2 and do not implement anonymous-account/recovery tables unless a new explicit decision replaces the current architecture.
