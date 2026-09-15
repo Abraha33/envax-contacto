@@ -1,166 +1,156 @@
 # ENVAX — Workstreams V1
 
-This document answers “who/what builds what” even if one person/AI pair executes all work.
+This document answers who/what owns each responsibility even if one maintainer plus AI agents execute the work.
 
 ## 1. Frontend — Customer
 
 Owns:
-- landing handoff;
-- catalog navigation/UI;
-- categories/brands/families/products;
-- search/filter UI;
-- anonymous-mode prompts;
-- favorites lists;
-- pedido-request UI;
-- customer status views;
-- portal/order history;
-- promotion selection;
+- public catalog navigation/UI;
+- category/brand/search/product experiences;
+- temporary local anonymous favorites if implemented;
+- Supabase-authenticated customer UX;
+- persistent named-list UI;
+- request preparation/submission UI;
+- own-order/status views;
+- eligible-promotion UI;
 - responsive/accessibility states.
 
 Does not own:
 - identity truth;
-- seller assignment;
-- database writes directly;
-- ERP credentials;
+- database authorization;
+- business state transitions;
+- ERP secrets;
 - promotion eligibility rules;
-- request/order state transitions.
+- seller/admin permissions.
 
-## 2. Frontend — Admin
+## 2. Frontend — Admin/Internal
 
-Owns:
-- internal operational views;
-- incoming solicitudes/pedidos;
-- seller/admin controls exposed by API;
-- promotion creation/targeting;
-- customer/business-type targeting UI;
-- audit/status presentation.
+Owns presentation for:
+- requests/orders;
+- catalog administration;
+- customers/internal member management;
+- promotions;
+- configuration;
+- audit/analytics views;
+- seller commercial operations as appropriate.
 
-Does not bypass API authorization.
+UI visibility never replaces API/RLS authorization.
 
 ## 3. Backend / API
 
-Owns the business rules:
-- sessions/identity;
-- anonymous recovery;
-- portal upgrade;
-- catalog visibility policy;
-- favorites ownership;
-- solicitud creation;
+Supabase Edge Functions own application/business rules:
+- session/JWT validation;
+- role/permission checks;
+- ownership checks;
+- catalog contracts;
+- customer profile operations;
+- persistent list operations;
+- formal request creation/snapshots;
 - idempotency;
-- seller assignment;
-- solicitud → pedido conversion;
-- customer-visible status mapping;
+- request/order transitions;
 - promotion eligibility;
 - audit events;
-- provider adapters;
-- ERP gateway interface.
+- integration adapters;
+- extension contracts.
 
-This is the only application layer that performs privileged D1/R2/Queue actions.
+There is no V1 seller-assignment engine because V1 has one seller.
 
 ## 4. Database / Data
 
-Owns:
+Supabase PostgreSQL owns:
 - relational schema;
 - migrations;
 - constraints/indexes;
-- Product Master import format;
-- seeds/fixtures;
+- RLS policies;
+- transactional functions/RPC where useful;
+- development seed fixtures;
 - request/order snapshots;
-- identity linking;
-- catalog versions;
 - data integrity;
+- audit/idempotency storage;
 - backup/restore evidence.
 
-Data layer does not contain UI logic or vendor-specific Wappsi assumptions.
+No D1 business schema exists in the current baseline.
 
-## 5. Catalog Content / Assets
+## 5. Authentication
 
-Owns:
-- canonical product source/export;
-- SKU/reference mapping;
-- categories/brands/families;
-- variant mapping;
-- asset lineage;
-- image/media preparation;
-- public/customer/internal visibility metadata.
+Supabase Auth owns:
+- email/password credentials;
+- login/logout;
+- password recovery;
+- sessions/JWT.
 
-This track can evolve separately from app code as long as import contracts stay stable.
+ENVAX stores application role/profile data, not passwords.
 
-## 6. Seller Extension
+## 6. Catalog content/assets
 
 Owns:
-- manual selected-text capture;
-- deterministic parser;
-- normalized payload;
-- ambiguity review;
-- authenticated API handoff;
-- extension UX;
-- no secret storage;
-- fixture-based tests.
+- canonical catalog source/import data;
+- reference/SKU mapping;
+- category/brand/variant taxonomy;
+- product descriptions/attributes;
+- approved public photos/media;
+- media quality/alt text.
 
-Does not directly update D1 or talk to ERP API with server credentials.
+Storage lives in Supabase Storage; metadata/relations live in PostgreSQL.
 
-## 7. Integrations
+Prices and stock are outside V1.
 
-Owns provider adapters:
-- WhatsApp click-to-chat or future official provider;
-- email provider/fallback;
-- optional Google Sheet projection;
-- future Wappsi adapter;
-- outbound retry logic.
-
-Core domains call interfaces, not provider-specific code.
-
-## 8. Infrastructure / Cloudflare
+## 7. Seller extension
 
 Owns:
-- Workers deployments;
-- custom domains/routes;
-- D1/R2/Queues bindings;
-- Turnstile;
-- Access for internal admin;
-- staging/production separation;
-- secrets;
-- CI/CD deployment configuration;
-- monitoring/rollback.
+- explicit seller-initiated capture/context;
+- deterministic normalization/parsing where needed;
+- ambiguity reporting;
+- authenticated calls to ENVAX API;
+- no secrets in bundle;
+- no silent commercial writes from uncertain data.
 
-## 9. QA / Security / Operations
+It does not own state-transition rules; the server does.
+
+## 8. Analytics
 
 Owns:
-- unit/integration/E2E suites;
-- responsive/browser matrix;
-- accessibility;
-- security checks;
-- recovery/restore drills;
-- logs/metrics;
-- release checklist;
-- runbooks;
-- pilot evidence.
+- acquisition/QR/campaign events;
+- navigation/product events;
+- search/filter/list/request conversion events;
+- device/performance/error events;
+- event filtering/minimization;
+- provider-neutral event contract.
 
-## 10. Phase-to-workstream matrix
+Analytics is not authorization or commercial source of truth.
 
-| Phase | Frontend | Backend | DB/Data | Extension | Infra | QA |
-|---|---|---|---|---|---|---|
-| 1 Foundation | shells | API shell | binding skeleton | shell only | CI/staging | smoke |
-| 2 Catalog data | minimal consumer | catalog API | schema/import | — | D1/R2 | contract/import |
-| 3 Catalog UX | primary | read support | seed data | — | deploy | responsive/E2E |
-| 4 Identity/Favorites | primary | primary | identity/favorites | — | security config | isolation/E2E |
-| 5 Pedido MVP | primary | primary | request/order model | — | handoff config | idempotency/E2E |
-| 6 Seller bridge | status only | conversion API | ingestion/audit | primary | extension auth | fixtures/E2E |
-| 7 Portal | primary | primary | customer linking | — | auth provider | privacy/E2E |
-| 8 Promotions | customer+admin | eligibility/handoff | promotion model | — | async/provider | targeting/E2E |
-| 9 Hardening | fixes | fixes | restore/indexes | fixes | monitoring | primary |
+## 9. Audit
 
-## 11. Practical execution order for one maintainer
+Owns immutable/append-oriented evidence for sensitive actions:
+- request/order transitions;
+- cancellations;
+- `FACTURADO`;
+- admin changes;
+- extension writes.
 
-Within each phase:
-1. contract/schema first;
-2. backend rule second;
-3. frontend/extension consumer third;
-4. integration fourth;
-5. automated tests throughout;
-6. staging verification;
-7. gate evidence;
-8. merge.
+Audit is separate from Analytics.
 
-This prevents UI from inventing business rules and prevents the database from being shaped by one temporary screen.
+## 10. DevOps / Infrastructure
+
+Owns:
+- pnpm/Node toolchain;
+- Supabase CLI/local environment;
+- CI;
+- staging/production environment separation;
+- migrations/deploys;
+- secret management;
+- restore drills;
+- Cloudflare landing/QR/static delivery where retained;
+- release/rollback evidence.
+
+## 11. ERP validation track
+
+Independent from core construction.
+
+Owns:
+- real credentials/environment validation;
+- read/write capability testing;
+- reliability/security findings;
+- eventual `ErpGateway` adapter only after evidence.
+
+It must not modify core domain contracts based on unverified assumptions.
