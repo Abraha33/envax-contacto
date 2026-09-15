@@ -115,12 +115,14 @@ ENVAX has internal company members.
 Canonical V1 roles:
 - `seller` (`vendedor`): commercial operator. The previous word `advisor/asesor` is a customer-facing synonym only; technically `asesor` and `vendedor` mean the same role.
 - `administrator` (`administrador`): internal role with broader management permissions; exact permission matrix is defined later in identity/authorization design.
+- V1 operates with exactly one seller.
 
 ## Seller operations
 - The seller is the human operator who receives and works commercial requests/orders.
+- V1 has a single seller, so every formal request/order is routed to that seller.
+- V1 does not need seller assignment, territory routing, queues or load-balancing logic.
 - The customer does not choose the seller manually in V1.
-- ENVAX assigns or routes requests internally.
-- Exact seller-assignment logic (automatic, manual, by territory, by customer, queue, or another rule) remains pending.
+- If ENVAX adds multiple sellers in the future, seller assignment/routing becomes a future-scope feature rather than a V1 requirement.
 - Seller can move a request into attention, confirm the commercial order, cancel a request, cancel an order, and confirm that external invoicing has been completed.
 - Seller cannot erase commercial history through normal operations.
 - The browser extension supports the seller's external operational workflow by transforming/copying confirmed WhatsApp/order information into the format expected by the existing external system.
