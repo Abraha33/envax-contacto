@@ -45,7 +45,7 @@ Approved canonical rules:
 
 Important separation:
 - anonymous business persistence: not allowed;
-- anonymous analytics/telemetry: allowed conceptually, under the analytics privacy and retention rules to be defined later.
+- anonymous analytics/telemetry: allowed conceptually, under the analytics privacy and retention rules.
 
 ## Customer area / portal capabilities
 Customer identification/login enables private capabilities inside the same ENVAX experience.
@@ -97,10 +97,18 @@ Approved catalog rules:
 - A variant may have its own reference/SKU and its own media.
 - A product may have general media shared by its variants.
 - Product attributes may vary according to product type/category instead of forcing the same attributes on every product.
-- Exact product fields, attribute schema, SKU/reference policy and source-of-truth synchronization are intentionally deferred to later data/integration phases.
 - Prices are excluded from V1 catalog output.
 - Stock is excluded from V1 catalog guarantees.
 - Product photography/media needed to present the catalog is public in V1.
+
+Approved V1 public product baseline:
+- name;
+- brand;
+- reference;
+- product photography/media;
+- variant/presentation;
+- short description;
+- useful public attributes appropriate to the product type.
 
 ## Requests
 Canonical meaning:
@@ -192,25 +200,20 @@ Direct WhatsApp/email contact does not automatically create a formal request unl
 - Promotions must not turn ENVAX into ecommerce: no checkout, payment, automatic purchase or V1 price engine.
 - PWA/push is later scope.
 
-## Public product data
-Approved public baseline:
-- name;
-- brand;
-- reference;
-- product photography/media required to present the catalog.
-
-Other product-field visibility may be expanded later as the catalog schema is finalized.
-Prices and stock are explicitly outside V1 public output.
-
 ## Analytics
 - V1 should capture broad useful behavioral/product analytics from launch so future analysis does not require redesigning the site.
+- Capture navigation, searches, filters, products viewed, list actions, requests, WhatsApp/email clicks, acquisition/campaign data, device/browser context and performance/error signals when useful.
 - Do not capture passwords, credentials, sensitive form values, private message contents or unnecessary personal data.
+- Detailed analytics events have an initial retention target of 12 months; aggregated long-term metrics may be retained separately if useful and compliant.
 - Product analytics and operational audit logs remain separate concepts.
-- Exact retention/consent configuration is finalized in the security/privacy phase.
+- Consent/privacy implementation is finalized in the security/privacy phase and must respect applicable requirements.
 
 ## ERP
-All API/integration claims remain pending real validation.
-ENVAX V1 must not depend on ERP price or stock synchronization because neither is part of V1 public output.
+- All API/integration claims remain pending real validation.
+- ENVAX V1 must operate correctly without Wappsi/ERP integration.
+- Wappsi/ERP is an optional external adapter, not a dependency of the ENVAX domain model.
+- Only capabilities verified against a real API/integration contract may be added later.
+- ENVAX V1 must not depend on ERP price or stock synchronization because neither is part of V1 public output.
 
 ## Deployment boundaries
 Landing, catalog, extension, docs, and Workers should remain cleanly separable so Cloudflare can deploy only the intended application portion/assets for each project.
