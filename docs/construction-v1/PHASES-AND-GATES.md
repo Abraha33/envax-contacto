@@ -2,235 +2,268 @@
 
 ## Purpose
 
-Construction is phase-gated. A phase cannot be called complete because files exist; it is complete only when the defined behavior works in staging and the exit evidence exists.
+Construction is phase-gated. A phase is complete only when defined behavior works and evidence exists.
 
 ## Phase 0 — Definition readiness
 
 ### Scope
-- canonical product docs;
-- official construction plan;
-- architecture baseline;
-- visual UX work coordinated in parallel;
-- unresolved public product fields explicitly pending;
+- canonical product/domain docs;
+- Supabase architecture baseline;
+- legacy Cloudflare D1/anonymous-account assumptions removed;
 - Wappsi explicitly non-blocking.
 
 ### Gate: `BUILD PLAN READY`
+
 Evidence:
-- all construction docs present;
-- no contradiction with latest product rules;
-- implementation branch can be created without requiring a new product decision.
+- canonical and construction docs do not contradict each other;
+- implementation branch can be created without a new product decision;
+- no unresolved architecture blocker.
 
 ## Phase 1 — Foundation
 
 ### Scope
 - pnpm workspace;
-- TypeScript project configuration;
-- React/Vite shells;
-- Cloudflare Worker API shell;
-- D1 local/staging bindings;
+- TypeScript strict config;
+- React/Vite customer/admin shells;
+- Supabase CLI/project directory;
+- Edge Function API health shell;
 - test/lint/typecheck/build commands;
 - CI;
-- independent deployment skeletons;
-- current landing preserved.
+- existing landing/QR preserved.
 
 ### Gate: `FOUNDATION PASS`
+
 Evidence:
 - `pnpm lint` PASS;
 - `pnpm typecheck` PASS;
 - unit smoke tests PASS;
-- all packages build;
-- API health endpoint works locally and staging;
-- customer/admin shells deploy separately;
-- production landing is not changed or staging parity is proven before switch;
+- all packages/apps build;
+- Supabase local stack starts when required local runtime is available;
+- clean `supabase db reset` works;
+- API health route works locally;
+- customer/admin shells run;
+- root landing/QR behavior/files were not accidentally changed;
 - no secrets in repo.
 
-## Phase 2 — Catalog data
+Remote staging may remain `PENDING ENVIRONMENT` if credentials/project are not provisioned; do not report a false remote PASS.
+
+## Phase 2 — Identity, roles, database and RLS
 
 ### Scope
-- D1 schema/migrations;
-- Product Master normalization/import;
-- categories/brands/families/products/variants;
-- asset metadata/R2 policy;
-- catalog API;
-- search/filter baseline.
+- user/customer profile migrations;
+- Supabase Auth integration;
+- roles `CUSTOMER`, `SELLER`, `ADMIN`;
+- one seeded/configured V1 seller model;
+- RLS policies;
+- authorization helpers;
+- local/test fixtures.
+
+### Gate: `IDENTITY DATA PASS`
+
+Evidence:
+- clean DB rebuild from migrations PASS;
+- email/password auth integration test PASS;
+- Customer A cannot access Customer B private data;
+- customer cannot perform seller/admin actions;
+- seller cannot perform admin-only actions;
+- admin authorization PASS;
+- no service-role key in browser/extension bundles.
+
+## Phase 3 — Catalog data/API
+
+### Scope
+- brands/categories/segments/products/variants/attributes/media;
+- deterministic catalog import/seed path;
+- Storage media policy;
+- catalog REST API;
+- search/filter;
+- no price/stock.
 
 ### Gate: `CATALOG DATA PASS`
+
 Evidence:
-- clean DB can be created from migrations;
-- deterministic import from fixture/source export;
-- duplicate/invalid identifiers are reported;
-- import can be re-run safely by version;
-- contract tests for catalog reads PASS;
-- no Wappsi call in required path.
+- clean migration/seed/import PASS;
+- duplicate/invalid identifiers reported;
+- catalog read contract tests PASS;
+- public media read works; unauthorized media writes fail;
+- no Wappsi call in customer critical path;
+- no price/stock leaked.
 
-## Phase 3 — Customer catalog UI
-
-### Precondition: `DESIGN READY` for screens being implemented
-
-### Scope
-- landing handoff;
-- catalog/index;
-- category/brand/family/product;
-- responsive listings;
-- search/filters;
-- loading/empty/error/404.
-
-### Gate: `CATALOG UX PASS`
-Evidence:
-- approved desktop/mobile layouts implemented;
-- keyboard navigation baseline;
-- responsive matrix PASS;
-- no ecommerce cart/checkout language introduced;
-- E2E can navigate landing → product;
-- performance budget measured.
-
-## Phase 4 — Anonymous identity + Favorites
-
-### Scope
-- anonymous account/session;
-- business name/type persistence;
-- recovery credential;
-- cross-device recovery;
-- multiple named favorite lists;
-- item operations.
-
-### Gate: `IDENTITY FAVORITES PASS`
-Evidence:
-- no contact information required;
-- secure cookie session;
-- recovery secret never stored plaintext server-side;
-- second device restores same anonymous identity using recovery credential;
-- favorites persist;
-- ownership isolation test PASS;
-- one account cannot read another account's favorites.
-
-## Phase 5 — Pedido request + advisor — MVP
-
-### Scope
-- Enviar pedido;
-- solicitud creation;
-- line snapshots;
-- seller assignment;
-- visible statuses;
-- WhatsApp/email handoff;
-- confirmation;
-- operational request view.
-
-### Gate: `COMMERCIAL MVP PASS`
-Evidence:
-- customer submits real seeded products;
-- seller/advisor sees correct context;
-- duplicate submit with same idempotency key creates one solicitud;
-- customer sees `Solicitud enviada`;
-- failure to open/send external channel does not mark provider delivery as successful;
-- E2E mobile + desktop PASS;
-- staging pilot can start.
-
-## Phase 6 — Seller extension
+## Phase 4 — Customer catalog UI
 
 ### Precondition
-5–10 real sanitized ERP copied-text samples exist.
+Relevant visual screens are Design Ready.
 
 ### Scope
-- parser fixture suite;
-- Manifest V3 shell;
-- manual selection capture;
-- request matching;
-- automatic validated fast path;
+- catalog/index;
+- categories/brands/search;
+- product/variant detail;
+- responsive listings;
+- loading/empty/error/404;
+- analytics hooks.
+
+### Gate: `CATALOG UX PASS`
+
+Evidence:
+- approved desktop/mobile layouts implemented;
+- keyboard/accessibility baseline;
+- responsive matrix PASS;
+- no cart/checkout/price/stock semantics;
+- E2E landing/catalog→product PASS;
+- performance measured.
+
+## Phase 5 — Authentication + persistent lists
+
+### Scope
+- Supabase email/password customer UX;
+- minimal business profile;
+- persistent named lists;
+- add/remove concrete variants;
+- list rename/deactivate;
+- optional safe local-to-account favorite transfer if implemented.
+
+### Gate: `AUTH LISTS PASS`
+
+Evidence:
+- registration/login/logout/recovery behavior PASS;
+- persistent lists require authentication;
+- ownership isolation PASS;
+- Customer A cannot access Customer B lists;
+- anonymous visitor cannot access persistent-list API;
+- no quantity/price/cart semantics required in list.
+
+## Phase 6 — Formal request + seller MVP
+
+### Scope
+- request preparation with quantities;
+- authenticated formal request creation;
+- item snapshots;
+- idempotency;
+- single-seller commercial view;
+- `SENT → IN_ATTENTION`;
+- customer request/order reads;
+- WhatsApp/email handoff behavior.
+
+### Gate: `COMMERCIAL MVP PASS`
+
+Evidence:
+- customer submits seeded products successfully;
+- duplicate submit with same idempotency key creates one request;
+- seller sees correct context;
+- no seller-assignment engine/path exists;
+- customer cannot mutate commercial state;
+- channel failure does not create false success;
+- mobile/desktop E2E PASS.
+
+## Phase 7 — Pedido lifecycle + seller extension
+
+### Precondition
+Real sanitized external-system text examples exist before parser automation.
+
+### Scope
+- transactional request→order conversion;
+- order snapshots;
+- cancel request/order;
+- extension shell/context;
+- deterministic parser fixture suite if required;
 - ambiguity review fallback;
-- solicitud → pedido conversion;
+- `FACTURADO` confirmation;
 - audit/idempotency.
 
-### Gate: `SELLER BRIDGE PASS`
+### Gate: `SELLER OPERATIONS PASS`
+
 Evidence:
-- every approved fixture parses deterministically;
-- unrelated page text is not scraped;
-- ambiguous sample produces no state write;
-- valid sample converts exactly one request to exactly one order;
+- valid request converts exactly once into one order;
 - retry is idempotent;
-- customer status reflects conversion;
-- audit record exists.
+- ambiguous extension input produces no silent write;
+- external failure cannot mark `FACTURADO`;
+- seller explicit confirmation required for `FACTURADO`;
+- audit records exist;
+- seller cannot access admin-only operations.
 
-## Phase 7 — Portal
-
-### Scope
-- verified customer upgrade;
-- contact verification adapter;
-- session/account recovery;
-- order list/detail/status;
-- preserve anonymous history.
-
-### Gate: `PORTAL PASS`
-Evidence:
-- anonymous history survives upgrade;
-- verified customer sees only own orders;
-- logout/revocation works;
-- verification attempts rate-limited;
-- provider-disabled environment fails gracefully.
-
-## Phase 8 — Admin/promotions
+## Phase 8 — Admin + promotions
 
 ### Scope
-- promotion CRUD;
-- targeting by customer/business type;
+- catalog management;
+- customers/internal member management;
+- promotion CRUD/targeting;
 - eligibility;
-- selection of one/multiple promotions;
-- advisor handoff;
-- audit/consent support.
+- operational supervision;
+- audit views.
 
-### Gate: `PROMOTIONS PASS`
+### Gate: `ADMIN PROMOTIONS PASS`
+
 Evidence:
 - admin authorization enforced;
-- target query verified;
-- non-target customer cannot retrieve promotion;
-- selection/handoff context correct;
-- promotion lifecycle dates tested;
-- changes auditable.
+- seller/customer denied admin actions;
+- non-target customer cannot retrieve private promotion;
+- lifecycle dates/targeting tested;
+- sensitive changes auditable.
 
-## Phase 9 — Production hardening
+## Phase 9 — Analytics + hardening
 
 ### Scope
-- accessibility;
-- browser/device matrix;
-- security;
-- observability;
-- rate limiting/Turnstile;
+- event taxonomy;
+- QR/campaign attribution;
+- product/conversion funnels;
+- privacy filtering;
+- observability/request IDs;
+- rate limiting;
+- security/dependency review.
+
+### Gate: `OBSERVABILITY SECURITY PASS`
+
+Evidence:
+- required events recorded without sensitive payloads;
+- Analytics outage does not break commercial flow;
+- request IDs/log lookup tested;
+- rate-limit behavior tested;
+- secret scanning/review PASS.
+
+## Phase 10 — Production readiness
+
+### Scope
+- accessibility/browser/device matrix;
 - backups/restore;
+- deployment/rollback;
+- RLS attack tests;
 - load/performance smoke;
+- privacy/legal closure;
 - runbooks;
-- real pilot.
+- pilot.
 
 ### Gate: `PRODUCTION READY`
+
 Evidence:
-- critical E2E suite PASS;
-- dependency/security scan reviewed;
+- critical E2E PASS;
 - restore drill PASS;
-- staging → production deployment/rollback tested;
-- alerts/log lookup tested;
+- staging→production and rollback tested;
+- Customer A/B isolation proven;
+- seller/admin permission boundaries proven;
 - no unresolved P0/P1 defects;
-- pilot confirms customers can discover, favorite and send requests without assistance.
+- privacy requirements closed;
+- pilot validates discover→request→seller/order flow.
 
-## Parallel external gate — ERP
+## Parallel ERP gate
 
-ERP integration has its own status:
+`ERP UNKNOWN → READ VALIDATED → WRITE VALIDATED → SECURITY/RELIABILITY VALIDATED → ERP ADAPTER READY`
 
-`ERP UNKNOWN → READ VALIDATED → CUSTOMER/INVOICE VALIDATED → ORDER WRITE VALIDATED → RELIABILITY VALIDATED → ERP ADAPTER READY`
-
-ENVAX core never changes its gate to blocked merely because ERP stays `UNKNOWN`.
+Core ENVAX never becomes blocked merely because ERP stays `UNKNOWN`.
 
 ## Defect severity
 
-- P0: security/data-loss/system unavailable — blocks gate.
-- P1: core user flow broken — blocks gate.
-- P2: meaningful but workaround exists — can pass only with documented acceptance.
-- P3: cosmetic/minor — schedule normally.
+- P0: security/data loss/system unavailable — blocks gate.
+- P1: core flow broken — blocks gate.
+- P2: meaningful issue with workaround — pass only with documented acceptance.
+- P3: minor/cosmetic — schedule normally.
 
 ## Evidence discipline
 
-For every gate, save:
-- command/test output;
-- staging URL/version/commit;
+For every gate save:
+- exact commit;
+- commands/test output;
 - migration version where relevant;
-- screenshots only for visual evidence, not as replacement for functional tests;
-- known limitations;
-- rollback note.
+- local/staging environment used;
+- limitations/blockers;
+- rollback/restore note where relevant;
+- screenshots only as visual evidence, never as replacement for functional tests.
