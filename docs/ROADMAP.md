@@ -1,83 +1,144 @@
-# ENVAX — Roadmap v1
+# ENVAX — Roadmap V1
 
-## Phase 0 — Product definition
-- Consolidate product vision
-- Consolidate user flow
-- Close named favorites-list concept
-- Define anonymous-profile + Customer Portal concept
-- Define request-to-order state model
-- Keep ERP/API status explicitly pending until validated
+## Phase 0 — Definition and architecture
 
-## Phase 1 — Seller bridge definition
-- Collect 5–10 real ERP text samples
-- Define extension extraction schema
-- Define customer/request matching rules
-- Define automatic `solicitud → pedido` update behavior
-- Define failure/ambiguity handling
-- Define Sheet columns/workflow if Sheet remains useful
+- Consolidate product vision/domain rules.
+- Close catalog/entity relationships.
+- Close request/order lifecycle.
+- Define Supabase Auth email/password identity model.
+- Define roles: Customer, one Seller, Admin.
+- Define PostgreSQL/RLS/database model.
+- Define REST API and backend architecture.
+- Keep ERP/Wappsi explicitly pending until validated.
 
-## Phase 2 — V1 catalog + order-request + Customer Portal
-- Landing
-- Catalog cover/index
-- Category/brand exploration
-- Product listing/detail
-- Search/filters
-- Anonymous profile/session foundation
-- Named favorites lists
-- Send order request from favorites
-- Direct advisor contact without favorites
-- WhatsApp/email handoff
-- Simple customer-visible request status
-- Customer Portal activation/identification
-- Customer Portal access/login
-- `Mis pedidos`
-- Order detail/status
-- Keep favorites usable independently of Portal
-- Analytics module foundation across landing + catalog + identified area
-- Acquisition/source tracking including QR campaigns
-- Core product/UX/conversion events and funnels
-- Responsive/accessibility testing
+Status: ✅ architecture sufficiently defined for implementation.
 
-## Phase 3 — Operational pilot
-- Test with real customers
-- Measure acquisition → landing → catalog → favorites/contact → order-request → order conversion
-- Compare QR, search/direct and other acquisition sources
-- Identify abandonment, friction and device-specific issues
-- Validate whether customers understand named favorites lists
-- Validate advisor handoff quality
-- Validate Customer Portal access and order visibility
-- Validate seller extension workflow
-- Fix friction before major expansion
+## Phase 1 — Technical foundation
 
-## Phase 4 — V1.1 returning customer improvements
-- Cross-device anonymous-profile recovery/synchronization
-- Improve Portal identity/recovery if needed
-- Improve returning-customer experience
-- Keep favorites usable independently of Portal
+- pnpm workspace.
+- React/Vite customer/admin shells.
+- Supabase CLI/local structure.
+- Edge Function `/api/v1` health shell.
+- migrations/seed skeleton.
+- lint/typecheck/test/build.
+- CI.
+- preserve current landing and QR behavior.
 
-## Phase 5 — V1.2 promotions
-- Administrator promotions module
-- Target specific customer
-- Target business type
-- Customer selects one/multiple promotions
-- WhatsApp/email advisor handoff
-- Consent/privacy/frequency rules
+## Phase 2 — Identity, database and security foundation
 
-## Phase 6 — ERP integration
+- Supabase Auth integration.
+- customer/internal profiles and roles.
+- one-seller model.
+- PostgreSQL migrations.
+- RLS policies and isolation tests.
+- audit/idempotency foundation.
+
+## Phase 3 — Catalog data/API
+
+- categories/brands/segments/products/variants/attributes.
+- public photos/media in Supabase Storage.
+- deterministic import/seed path.
+- catalog REST API.
+- search/filters.
+- no prices or stock.
+
+## Phase 4 — Customer catalog UI
+
+After relevant visual designs are approved:
+- catalog cover/index;
+- category/brand exploration;
+- product listing/detail;
+- search/filter;
+- responsive/loading/error states;
+- Analytics hooks.
+
+Public catalog remains usable without login.
+
+## Phase 5 — Customer authentication + persistent lists
+
+- email/password account/login/recovery.
+- minimal business profile.
+- multiple named persistent lists.
+- add/remove concrete variants.
+- ownership isolation.
+- optional anonymous local favorites remain device-local only.
+
+## Phase 6 — Formal request + seller commercial MVP
+
+- prepare request and quantities.
+- formal authenticated solicitud.
+- historical snapshots.
+- idempotent submission.
+- one seller receives all formal requests.
+- `Solicitud enviada → En atención`.
+- WhatsApp/email handoff.
+- customer can consult own request/order state.
+
+## Phase 7 — Pedido lifecycle + extension
+
+- transactional solicitud→pedido conversion.
+- `Pedido confirmado`.
+- cancellations/closed-without-order.
+- seller extension based on real sanitized examples.
+- deterministic parser/fail-safe review.
+- external processing.
+- explicit `FACTURADO` confirmation after external invoicing succeeds.
+- audit/idempotency.
+
+## Phase 8 — Admin + promotions
+
+- catalog administration.
+- customers/internal members.
+- promotion CRUD.
+- targeting by specific customer or business segment.
+- customer promotion eligibility/display.
+- audit/operational supervision.
+
+## Phase 9 — Analytics + hardening
+
+- acquisition/QR campaign tracking.
+- navigation/product/list/request/order funnels.
+- performance/error monitoring.
+- privacy filtering.
+- rate limiting.
+- security tests.
+
+Detailed-event retention baseline: 12 months, subject to final privacy/legal configuration.
+
+## Phase 10 — Production readiness
+
+- responsive/accessibility/browser matrix.
+- RLS/authorization attack tests.
+- backup/restore drill.
+- deployment/rollback proof.
+- performance/load smoke.
+- privacy/legal closure.
+- operational runbooks.
+- real customer pilot.
+
+## Parallel ERP track
+
 Only after real API validation:
-- Products/prices if approved
-- Customers if approved
-- Invoices if ever required
-- Orders/write integration
-- Status/synchronization
-- Production security and reliability
+- authentication/connectivity;
+- safe reads;
+- customer/order matching as needed;
+- write capability if available;
+- reliability/security;
+- controlled adapter rollout.
 
-## Phase 7 — V2 optional evolution
-- PWA/installability
-- Browser notifications where technically appropriate
-- Sharing products/lists
-- Deeper automation
-- Other customer features only after explicit product approval
+ERP uncertainty does not block core ENVAX.
+
+## Future V1.x / V2 candidates
+
+Only after evidence/explicit approval:
+- prices;
+- stock/availability;
+- MFA;
+- PWA/browser notifications;
+- sharing/copying lists;
+- direct ERP automation;
+- richer customer capabilities.
 
 ## Rule
-Do not let later phases turn the public catalog into ecommerce or delay the simple product whose goal is to show variety, preserve customer interest, generate human-assisted orders, and let identified customers consult their order status.
+
+Do not let later phases turn the public catalog into ecommerce or reintroduce superseded architecture such as persisted anonymous business accounts, multiple-seller routing or parallel D1 business storage.
