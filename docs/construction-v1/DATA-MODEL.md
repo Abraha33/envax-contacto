@@ -1,317 +1,118 @@
 # ENVAX — Data Model V1
 
-## 1. Principles
+## Authority
 
-- D1 is the operational relational source of truth for ENVAX V1.
-- Product catalog data is imported from the canonical ENVAX Product Master/export, not pulled live from Wappsi.
-- Historical pedido/request data is immutable enough to remain understandable even if catalog names/assets later change.
-- Anonymous and verified customer identities must be linkable without duplicating business history.
-- Sensitive provider credentials never live in database rows accessible to browser clients.
+The canonical V1 data model is:
 
-## 2. Core entities
+`docs/DATABASE-DESIGN-V1.md`
 
-### Identity / customer
+This construction file exists to prevent implementation drift. If details differ, `DATABASE-DESIGN-V1.md` wins.
 
-`anonymous_accounts`
-- `id`
-- `business_name`
-- `business_type_id`
-- `created_at`
-- `last_seen_at`
-- `upgraded_customer_id` nullable
-- `status`
+## Platform
 
-`anonymous_recovery_credentials`
-- `id`
-- `anonymous_account_id`
-- `secret_hash`
-- `created_at`
-- `rotated_at` nullable
-- `revoked_at` nullable
+- PostgreSQL on Supabase is the V1 operational source of truth.
+- Supabase Auth owns credentials/sessions.
+- PostgreSQL migrations are versioned in `supabase/migrations`.
+- Private tables use RLS policies.
+- Supabase Storage holds public catalog media.
+- Wappsi/ERP is not a source-of-truth dependency for V1.
 
-`sessions`
-- `id`
-- `anonymous_account_id` nullable
-- `customer_id` nullable
-- `session_secret_hash`
-- `created_at`
-- `expires_at`
-- `revoked_at` nullable
+## V1 entity groups
 
-`customers`
-- `id`
-- `business_name`
-- `business_type_id`
-- `status`
-- `created_at`
+### Identity
+- `user_profiles` linked 1:1 to `auth.users`;
+- role: `CUSTOMER | SELLER | ADMIN`;
+- `customer_profiles` for minimal business data.
 
-`customer_contacts`
-- `id`
-- `customer_id`
-- `type` (`email`, `whatsapp`)
-- `value_normalized`
-- `verified_at` nullable
-- `is_primary`
+V1 does not create persisted anonymous-account/session/recovery tables.
 
-`business_types`
-- `id`
-- `slug`
-- `name`
-- `active`
+### Catalog
+- `brands`;
+- `categories` with flexible parent hierarchy;
+- `segments`;
+- `products`;
+- `variants`;
+- product/category and product/segment many-to-many relations;
+- flexible attributes and values;
+- `media_assets` pointing to Supabase Storage.
 
-Do not use IP as an identity key.
+No V1 price or stock tables.
 
-## 3. Catalog
+### Favorites
+- `favorite_lists` owned by authenticated customers;
+- `favorite_list_items` referencing concrete variants/presentations.
 
-`brands`
-- `id`, `slug`, `name`, `active`
+No persistent anonymous favorites.
 
-`categories`
-- `id`, `parent_id` nullable, `slug`, `name`, `sort_order`, `active`
+### Requests
+- `requests` owned by customer and handled by the single V1 seller;
+- states: `SENT`, `IN_ATTENTION`, `ORDER_CONFIRMED`, `CANCELLED`, `CLOSED_NO_ORDER`;
+- `request_items` are historical snapshots with requested quantities.
 
-`families`
-- `id`, `category_id`, `slug`, `name`, `sort_order`, `active`
+No seller-assignment/routing tables are required in V1.
 
-`products`
-- `id`
-- `source_key` (stable Product Master identifier)
-- `sku/reference`
-- `name`
-- `brand_id`
-- `family_id`
-- `short_description` nullable
-- `active`
-- `catalog_version_id`
+### Orders
+- `orders`, at most one per request;
+- states: `CONFIRMED`, `INVOICED`, `CANCELLED`;
+- `order_items` historical snapshots.
 
-`product_variants`
-- `id`
-- `product_id`
-- `source_key`
-- `reference`
-- `presentation` nullable
-- `attributes_json`
-- `active`
+`INVOICED` maps to customer/business concept `FACTURADO` and only means external invoicing was confirmed by seller/admin.
 
-`product_assets`
-- `id`
-- `product_id`/`variant_id` nullable as applicable
-- `r2_key`
-- `kind`
-- `visibility` (`public`, `customer`, `internal`)
-- `sort_order`
-- `status`
+There is no V1 `Invoice/Factura` entity.
 
-`catalog_versions`
-- `id`
-- `source_file_hash`
-- `source_label`
-- `imported_at`
-- `import_report_json`
+### Promotions
+- promotions;
+- product/variant relations as needed;
+- customer/segment targeting.
 
-Public product-field policy remains configurable because final public visibility is not fully closed.
+No automatic pricing/discount checkout engine.
 
-## 4. Favorites
+### Audit
+- append-only `audit_log` for sensitive commercial/admin actions.
 
-`favorite_lists`
-- `id`
-- `owner_type` (`anonymous`, `customer`)
-- `anonymous_account_id` nullable
-- `customer_id` nullable
-- `name`
-- `created_at`
-- `updated_at`
+### Idempotency
+- `idempotency_records` for request creation and critical state-changing commands.
 
-`favorite_items`
-- `id`
-- `favorite_list_id`
-- `product_id`
-- `variant_id` nullable
-- `created_at`
+### Analytics
+Analytics is logically separate from commercial/audit data. If first-party events are stored in PostgreSQL, use a separate logical area/schema and never use analytics as authorization/source of truth.
 
-Constraints:
-- prevent duplicate same product/variant in one list unless product requirements later justify duplicates;
-- deleting favorites never cascades into historical solicitudes/pedidos.
+## Critical constraints
 
-## 5. Order request
+- one authenticated customer cannot access another customer's private rows;
+- one request → zero or one order;
+- item snapshots preserve historical names/reference/presentation/quantity;
+- product/category/variant deletion is normally deactivation, not hard deletion;
+- requests/orders/audit are not hard-deleted as normal operations;
+- seller role cannot administer catalog/users/promotions/configuration;
+- admin has V1 administrative/operational authority;
+- service-role keys never reach browser/extension.
 
-`order_requests`
-- `id`
-- `public_reference`
-- `anonymous_account_id` nullable
-- `customer_id` nullable
-- `source_favorite_list_id` nullable
-- `business_name_snapshot`
-- `business_type_snapshot`
-- `note` nullable
-- `status` (`submitted`, `assigned`, `in_attention`, `converted`, `cancelled`)
-- `assigned_seller_id` nullable
-- `idempotency_key`
-- `created_at`
-- `updated_at`
+## Critical transactions
 
-`order_request_items`
-- `id`
-- `order_request_id`
-- `product_id` nullable for historical resilience
-- `variant_id` nullable
-- `reference_snapshot`
-- `name_snapshot`
-- `brand_snapshot` nullable
-- `variant_snapshot` nullable
-- `quantity_requested` nullable
-- `metadata_json` nullable
+Must be atomic:
+1. create request + items + idempotency result;
+2. request state transition + audit;
+3. confirm order: create order + copy items + update request + audit;
+4. cancel request/order + audit;
+5. mark `FACTURADO/INVOICED` + timestamp + audit.
 
-The snapshot fields are intentional. Changing a catalog product later must not rewrite the commercial history.
+## RLS
 
-## 6. Orders
+RLS policies are part of the schema/migrations and must have automated isolation tests.
 
-`orders`
-- `id`
-- `public_reference`
-- `source_order_request_id` unique
-- `external_system` nullable
-- `external_order_id` nullable
-- `status` (`confirmed`, `completed`, `cancelled`)
-- `confirmed_at`
-- `completed_at` nullable
-- `created_at`
+At minimum prove:
+- Customer A cannot read/write Customer B lists/profile;
+- Customer A cannot read Customer B requests/orders;
+- customer cannot mutate commercial state;
+- seller cannot perform admin-only actions;
+- public catalog reads expose only approved public data.
 
-`order_items`
-- normalized/snapshot fields required to preserve the confirmed order;
-- exact pricing/quantity fields are included only when the seller/ERP workflow provides authoritative values.
+## Explicitly superseded legacy model
 
-`order_status_events`
-- `id`
-- `order_id` nullable
-- `order_request_id` nullable
-- `from_status`
-- `to_status`
-- `actor_type`
-- `actor_id` nullable
-- `reason_code` nullable
-- `created_at`
-
-## 7. Sellers/admin
-
-`sellers`
-- `id`
-- `display_name`
-- `active`
-- `assignment_weight` default 1
-
-`admin_users`
-- application-level internal identity only if/when needed in addition to Cloudflare Access;
-- never duplicate provider secrets.
-
-`seller_assignments`
-- `id`
-- `order_request_id`
-- `seller_id`
-- `assigned_at`
-- `closed_at` nullable
-
-## 8. Promotions
-
-`promotions`
-- `id`
-- `title`
-- `body`
-- `asset_id` nullable
-- `status` (`draft`, `scheduled`, `active`, `expired`, `archived`)
-- `starts_at` nullable
-- `ends_at` nullable
-- `created_by`
-- timestamps
-
-`promotion_targets`
-- `id`
-- `promotion_id`
-- `target_type` (`customer`, `business_type`)
-- `customer_id` nullable
-- `business_type_id` nullable
-
-`promotion_interests`
-- `id`
-- `promotion_id`
-- `anonymous_account_id` nullable
-- `customer_id` nullable
-- `created_at`
-- `handoff_id` nullable
-
-`promotion_deliveries` may be added when outbound delivery is implemented. Do not create it before a real channel/provider is selected unless needed for auditing.
-
-## 9. Handoffs / notifications
-
-`commercial_handoffs`
-- `id`
-- `source_type` (`order_request`, `promotion_interest`, `advisor_contact`)
-- `source_id`
-- `channel` (`whatsapp`, `email`)
-- `status`
-- `provider_message_id` nullable
-- `created_at`
-
-This separates the customer request from the delivery mechanism.
-
-## 10. Extension ingestion
-
-`extension_ingestions`
-- `id`
-- `seller_id`
-- `order_request_id`
-- `idempotency_key`
-- `source_document_type` nullable
-- `source_document_id` nullable
-- `normalized_payload_json`
-- `raw_selection_hash`
-- `parse_status`
-- `created_at`
-
-Do not store raw ERP copied text by default. Store only normalized fields and a hash unless a temporary diagnostic mode is explicitly approved with safe data.
-
-## 11. Audit
-
-`audit_events`
-- `id`
-- `request_id`
-- `actor_type`
-- `actor_id` nullable
-- `action`
-- `entity_type`
-- `entity_id`
-- `metadata_json` redacted/minimized
-- `created_at`
-
-Audit events are required for:
-- identity upgrade/link;
-- recovery credential rotation;
-- order-request state change;
-- request → order conversion;
-- admin promotion changes;
-- seller assignment changes;
-- extension writes.
-
-## 12. Indexing baseline
-
-Create indexes for common lookup paths:
-- product `source_key`, reference, family, brand;
-- favorite lists by owner;
-- request by owner/status/seller/created_at;
-- order by customer/source request/external ID;
-- promotion by status/date;
-- target by promotion/business type/customer;
-- sessions by owner/expiry;
-- recovery credential hash.
-
-Exact index plan must be validated using real query plans after seed volume exists.
-
-## 13. Deletion and retention
-
-Do not hard-code a final retention period before privacy/legal policy is approved.
-
-Build the model so we can:
-- revoke sessions;
-- rotate/revoke anonymous recovery credentials;
-- anonymize or delete customer contact data when required;
-- preserve legally/operationally necessary order records under a documented policy;
-- separate analytics retention from commercial records.
+Do not implement:
+- D1 as business source of truth;
+- anonymous persisted customer/recovery/session tables;
+- seller-assignment tables/policy;
+- rigid `Category → Family → Product` ownership;
+- invoice/fiscal-document tables;
+- price/stock tables.
