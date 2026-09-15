@@ -1,0 +1,10 @@
+﻿{
+"experiment": "ENVAX OpenCode + Penpot Design Automation",
+"stage": "environment-bootstrap",
+"phase": 0,
+"status": "BLOCKED",
+"currentBlocker": "Penpot MCP did not start: ERR_PNPM_IGNORED_BUILDS",
+"nextGoal": "Establish reproducible Penpot MCP connection",
+"targetCostUsd": 0,
+"canonicalBranch": "experiment/opencode-penpot-design-pipeline"
+}

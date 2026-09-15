@@ -1,0 +1,16 @@
+﻿workspace/00-inbox/*
+workspace/01-sources/*
+workspace/02-screens/*
+workspace/03-specs/*
+workspace/07-qa/*
+
+!workspace/00-inbox/.gitkeep
+!workspace/01-sources/.gitkeep
+!workspace/02-screens/.gitkeep
+!workspace/03-specs/.gitkeep
+!workspace/07-qa/.gitkeep
+
+node_modules/
+.env
+.env.*
+*.log
