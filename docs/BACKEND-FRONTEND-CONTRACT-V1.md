@@ -18,11 +18,17 @@ Sin login, el frontend puede pedir al backend información pública del catálog
 - búsqueda y filtros;
 - media pública únicamente cuando su visibilidad sea aprobada.
 
+V1 no muestra precios.
+
 El backend nunca debe devolver datos privados del cliente, promociones privadas, listas persistentes, solicitudes ni pedidos a un visitante anónimo.
 
 Los favoritos anónimos, si existen, viven solo en el dispositivo/navegador y no se persisten como datos comerciales en la base de datos de ENVAX.
 
 ## 2. Identidad del cliente
+
+V1 usa Supabase Auth con autenticación simple basada en contraseña. Para mantener la implementación nativa y sencilla, el identificador de acceso será el correo del cliente y la contraseña.
+
+MFA/2FA no es requisito de V1 y podrá añadirse después como refuerzo opcional.
 
 Después de un login válido, el frontend puede pedir:
 - identidad/perfil básico del cliente;
@@ -77,27 +83,37 @@ Estados de excepción permitidos según reglas internas:
 
 ## 6. Vendedor
 
-El frontend interno del vendedor puede pedir al backend los recursos que le correspondan y ejecutar acciones autorizadas como:
-- consultar solicitudes/pedidos asignados o disponibles según la futura regla de asignación;
+V1 tiene un único vendedor. Todas las solicitudes y pedidos comerciales llegan a ese vendedor; no existe lógica de asignación.
+
+El frontend interno del vendedor puede, como mínimo:
+- consultar todas las solicitudes y pedidos V1 que debe atender;
+- consultar la información mínima necesaria del cliente para realizar el trabajo comercial;
 - pasar una solicitud a `EN_ATENCION`;
 - confirmar un pedido;
 - cancelar una solicitud;
 - cancelar un pedido;
-- confirmar el resultado de facturación y pasar el pedido a `FACTURADO`;
-- consultar la información mínima necesaria del cliente para realizar el trabajo comercial.
+- confirmar que la facturación externa fue completada y pasar el pedido a `FACTURADO`;
+- utilizar el flujo soportado por la extensión del navegador.
 
 El vendedor no puede borrar el historial comercial.
+El vendedor no recibe automáticamente permisos administrativos sobre catálogo, configuración, usuarios u otras áreas por el hecho de ser el único vendedor.
+
+La frontera exacta de permisos del vendedor fuera de este flujo comercial es el principal punto de autorización todavía por cerrar.
 
 ## 7. Administrador
 
-El frontend administrativo podrá pedir capacidades de gestión como:
-- vendedores/miembros internos;
+El administrador tiene control total sobre las funciones administrativas y operativas de ENVAX V1.
+
+Puede gestionar y supervisar, entre otras áreas:
+- vendedor/miembros internos;
 - catálogo;
 - promociones;
-- supervisión de solicitudes y pedidos;
-- configuración autorizada.
+- clientes;
+- solicitudes y pedidos;
+- configuración del sistema;
+- operaciones disponibles en V1.
 
-La matriz exacta de permisos administrativos se definirá en seguridad/autorización. El backend debe validar el rol en cada operación sensible.
+Las acciones administrativas sensibles deben quedar auditadas.
 
 ## 8. Promociones
 
@@ -105,7 +121,7 @@ Solo clientes autenticados pueden recibir promociones privadas.
 
 El frontend puede pedir las promociones que correspondan al cliente autenticado. El backend decide cuáles puede ver según las reglas de segmentación.
 
-Las promociones no crean compras automáticas, checkout ni pagos.
+Las promociones no crean compras automáticas, checkout, pagos ni motor de precios en V1.
 
 ## 9. Analítica
 
@@ -151,12 +167,19 @@ El backend es la autoridad para esas decisiones.
 
 ## 12. Pendientes deliberados
 
-- 🟡 Proveedor y mecanismo técnico final de autenticación.
-- 🟡 Regla exacta de asignación de vendedor.
-- 🟡 Matriz exacta de permisos del administrador.
+- 🟡 Frontera exacta de permisos del vendedor fuera del flujo comercial ya aprobado.
 - 🟡 Visibilidad pública definitiva de media y campos adicionales de producto.
 - 🟡 Política exacta de analítica, consentimiento y retención.
-- 🟡 Fuente de verdad futura para precios/stock/ERP, si llega a existir.
+- 🟡 Stock y cualquier integración futura con ERP, si llega a existir.
+- 🟡 Vinculación segura de pedidos históricos con cuentas nuevas, si ENVAX necesita hacerlo.
+- 🟡 Datos exactos del perfil comercial del cliente.
+- 🟡 Duración y política de expiración de sesiones.
+
+Fuera de alcance V1:
+- precios;
+- motor de precios;
+- facturación electrónica dentro de ENVAX;
+- asignación de múltiples vendedores.
 
 ## Bloqueos
 
