@@ -1,46 +1,100 @@
 # ENVAX — Favorites Lists v1
 
 ## Purpose
-Favorites let a customer save products they commonly buy or may want to order later, grouped into reusable named lists.
+
+Favorites let customers save products they commonly buy or may want to request later, grouped into reusable named lists.
 
 Examples:
 - `Halloween`
 - `Cumpleaños`
 - `Uso diario`
 
-Favorites are not a cart and do not imply checkout, payment, totals, taxes, shipping calculation, or automatic purchase.
+Favorites are not a cart and do not imply checkout, payment, totals, taxes, shipping calculation or automatic purchase.
 
-## Core behavior
-A customer can:
+## Anonymous behavior
+
+A visitor may use temporary/local favorites before login if the frontend provides that convenience.
+
+Rules:
+- anonymous favorites live only in browser/device storage;
+- ENVAX does not persist them as customer business data in PostgreSQL;
+- they may be lost if browser/device storage is cleared or unavailable;
+- anonymous local favorites do not create a customer identity or private access rights.
+
+## Persistent favorites
+
+Persistent named lists require an authenticated customer.
+
+V1 uses Supabase Auth with email + password.
+
+An authenticated customer can:
 - create multiple lists;
 - name and rename each list;
-- add/remove products;
-- reopen a list later;
+- add/remove concrete variants/presentations;
+- reopen lists later;
 - keep adding products;
-- use a list as the starting point for an order request.
+- deactivate/delete a list without deleting commercial history;
+- use a list as the starting point for a formal request.
 
-## Product action
-Canonical concept:
-- `Agregar a favoritos`
-- choose existing list or create a new named list.
+## Ownership
 
-Final microcopy may still be refined by UX.
+Each persistent list belongs to exactly one customer account in V1.
 
-## Persistence
-Favorites should persist for returning customers.
+Backend and PostgreSQL RLS must enforce ownership. A customer cannot read or modify another customer's lists even if they manipulate request IDs.
 
-The product concept includes an anonymous profile/login so customers are not forced into a traditional account before saving lists. Same-device persistence is expected. Cross-device recovery/synchronization is required conceptually but the exact technical solution remains pending architecture definition.
+V1 does not include:
+- collaborative editing;
+- shared ownership;
+- importing/copying lists received through WhatsApp;
+- public share links.
 
-## Relation to Customer Portal
-Favorites must be usable independently of Customer Portal mode.
+Those capabilities may be evaluated later.
 
-The **Customer Portal is part of V1**, but Portal activation/identification is not required just to create or keep favorites. Portal mode exists for identified customers to access approved private functionality such as `Mis pedidos` and order detail/status.
+## List items
 
-Do not treat favorites as a Portal-only feature.
+The preferred V1 item reference is a concrete `Variant/Presentation`.
 
-## Order handoff
-A favorites list can be used to prepare an order request:
+A list item does not require:
+- price;
+- stock;
+- quantity.
 
-`Favorites list → Enviar pedido → WhatsApp or Email → Solicitud enviada → Advisor`
+Quantity belongs to the formal request-preparation step rather than the favorites concept itself.
 
-The request remains a `solicitud` internally until the seller processes it through the approved internal workflow, at which point ENVAX updates it to `pedido`.
+## Formal request
+
+Authenticated flow:
+
+`Favorites list → Prepare request → confirm quantities → Enviar pedido → Solicitud enviada → Seller`
+
+Submitting a request does not destroy or freeze the list.
+
+Important rule:
+- the request receives its own historical snapshot;
+- later edits to the list do not change an already-submitted request;
+- deleting/deactivating a list does not delete previous requests or orders.
+
+## Relation to My Orders
+
+Persistent lists and `Mis pedidos` are authenticated capabilities inside the same ENVAX customer experience.
+
+The customer does not need a separate ERP/accounting portal product.
+
+## Commercial states
+
+Favorites themselves do not carry commercial order status.
+
+Commercial lifecycle belongs to the request/order domain:
+
+`Solicitud enviada → En atención → Pedido confirmado → Facturado`
+
+## Out of V1
+
+- prices in favorites;
+- stock guarantees;
+- totals;
+- cart semantics;
+- checkout/payment;
+- shared/collaborative lists;
+- cross-account list transfer;
+- automatic purchase.
