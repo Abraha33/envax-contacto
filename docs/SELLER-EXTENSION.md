@@ -1,56 +1,104 @@
 # ENVAX — Seller Browser Extension v1
 
-Status: current definition priority.
+Status: approved operational direction; parser details depend on real sanitized examples.
 
 ## Purpose
-The extension is an internal bridge between the seller's ERP workflow and ENVAX while direct ERP/API integration is unresolved. It must not replace the ERP.
+
+The extension is an internal tool for the single ENVAX seller while direct ERP/Wappsi integration remains unresolved.
+
+It helps transform/copy validated ENVAX commercial information into the external system and/or validate external operational results without turning ENVAX into an invoicing application.
 
 ## Core rule
-**Manual text selection / explicit seller action, not automatic full-screen scraping.**
 
-The seller chooses the relevant ERP content and invokes the extension.
+**Explicit seller action only. No silent full-screen scraping or guessing.**
 
-## Canonical operational effect
-When the extension successfully processes the relevant request/order information, ENVAX automatically updates the corresponding record from:
+The seller chooses the relevant context and invokes the extension.
 
-`solicitud → pedido`
+## Canonical commercial role
 
-The change must propagate consistently across ENVAX.
+V1 has one seller; there is no assignment/routing logic.
 
-Seller/advisor assignment is determined by the system, not by the customer.
+The extension supports approved seller operations but does not decide state transitions on its own.
 
-## Proposed logical flow
-1. Seller opens the relevant ERP view.
-2. Seller selects/copies the relevant information.
-3. Seller opens or invokes the ENVAX extension.
-4. Extension parses the selected content.
-5. Extension matches the correct ENVAX customer/request.
-6. If required data is valid, it writes the normalized result.
-7. ENVAX changes `solicitud` to `pedido` automatically.
-8. Success/failure is shown clearly.
+ENVAX server remains authoritative for:
+- request state;
+- request→order conversion;
+- cancellation;
+- `FACTURADO`.
 
-## Candidate fields
-Exact schema is not final. Likely candidates:
-- customer/business identifier;
-- request/order/document identifier;
-- product code/SKU/reference;
-- product name;
+## Preferred logical flow
+
+1. Seller opens the relevant ENVAX request/order.
+2. Extension obtains permitted ENVAX context through authenticated API.
+3. Seller opens/uses the external operational system.
+4. Seller explicitly selects/invokes only the relevant external information where capture is needed.
+5. Deterministic parser/validation extracts candidate values.
+6. If incomplete/ambiguous/unmatched, extension stops for review.
+7. If valid, extension performs only the approved API operation/context handoff.
+8. ENVAX server validates identity, role, current state and idempotency.
+9. Seller explicitly confirms external invoicing success before ENVAX records `FACTURADO`.
+
+## Request → order
+
+A formal request becomes a real ENVAX order only through an approved seller/admin server command.
+
+The operation must be transactional and idempotent:
+- validate request state;
+- create exactly one order;
+- copy historical item snapshots;
+- update request;
+- write audit event.
+
+The extension may assist this workflow but cannot bypass server rules.
+
+## `FACTURADO`
+
+`FACTURADO` means only:
+
+> The seller/admin confirmed that the order was invoiced/formalized successfully in the external system.
+
+The extension must never mark `FACTURADO` merely because:
+- an external screen opened;
+- data was copied;
+- a parser found an identifier;
+- a click occurred.
+
+Explicit confirmed success is required.
+
+## Candidate external fields
+
+Exact parser schema must come from real sanitized examples, not invented assumptions.
+
+Potentially useful external context may include:
+- ENVAX request/order reference;
+- external document/order identifier;
+- product reference/SKU;
 - quantity;
-- price/document values when needed;
-- date/status when present.
+- customer/business identifier where needed for safe matching;
+- external status/result.
 
-## Validation behavior
-A mandatory confirmation screen is no longer a product requirement. The extension may update automatically when the selected data is valid and confidently matched. Ambiguous, incomplete, or unmatched data must stop and ask for correction instead of guessing.
+Prices are not part of the ENVAX V1 catalog/order domain and should not be persisted merely because the ERP displays them.
 
-## Data needed before implementation
-Collect 5–10 real examples of copied ERP text covering the actual seller workflow. Do not design the parser from invented examples.
+## Authentication and security
+
+- Seller authenticates through Supabase Auth.
+- Extension uses seller session/context through ENVAX API.
+- No Supabase service-role/secret key in extension code.
+- No permanent ERP secret in extension bundle.
+- Minimum browser permissions.
+- No direct privileged database access.
+- No unrelated page scraping.
+- No raw ERP clipboard text stored by default.
+- Fail closed on ambiguity.
+
+## Data needed before parser implementation
+
+Collect 5–10 sanitized real examples covering the actual seller workflow before implementing deterministic parser patterns.
+
+Fixtures in a public repository must contain fake/sanitized customer/business values.
 
 ## ERP/API status
-Direct Wappsi/API integration remains completely pending real validation. The extension must be able to serve as the operational bridge without assuming the API will be available.
 
-## Safety
-- No secrets embedded in extension code.
-- Minimum browser permissions.
-- No automatic extraction of unrelated page content.
-- Never guess a customer/request match.
-- Log failures without exposing unnecessary customer-sensitive information.
+Direct Wappsi/API integration remains **PENDING REAL VALIDATION**.
+
+The extension must remain useful without assuming an ERP API will exist.
