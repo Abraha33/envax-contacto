@@ -8,6 +8,10 @@
 - Named favorites lists replace the old single `Mi selección` concept.
 - Customer CTA can say `Enviar pedido`, while the initial internal state is `solicitud` until seller processing promotes it to `pedido`.
 - Human seller remains part of the commercial conversion flow.
+- ENVAX is NOT an electronic invoicing system.
+- ENVAX does not create, edit, extract, upload, download, display, validate, transmit or manage electronic invoices.
+- Customers do not see or operate invoices inside ENVAX.
+- Electronic invoicing remains an external operational process performed in the seller's existing system/ERP.
 
 ## Visual direction
 - Minimalist, editorial, clean, professional B2B.
@@ -42,11 +46,11 @@ Important separation:
 Customer identification/login enables private capabilities inside the same ENVAX experience.
 
 Current approved private capability:
-- view customer orders.
+- view customer orders and their ENVAX status.
 
 Customer-only capabilities also include access to promotions when applicable.
 
-Do not add invoices, accounting, private prices, checkout, or ecommerce behavior without explicit approval.
+Do not add invoices, electronic invoicing, accounting, private prices, checkout, or ecommerce behavior without explicit approval.
 
 ## Favorites
 - Anonymous favorites may exist only as local browser/device state and are not guaranteed to survive local storage loss.
@@ -96,10 +100,12 @@ Canonical customer/commercial transition:
 Domain separation:
 - `solicitud enviada` and `en atención` belong to the request stage.
 - `pedido confirmado` begins the order stage.
-- `facturado` means the seller has verified that the order was actually invoiced/formalized as a sale.
+- `facturado` is only a status flag inside ENVAX meaning the seller confirms that the external invoicing/sale formalization step has been completed.
+- `facturado` does NOT mean ENVAX generated, stored, displayed or managed an invoice.
+- ENVAX must not create a first-class `Invoice/Factura` entity in V1.
+- ENVAX must not store invoice files, XML/PDF, electronic tax documents or invoice line-item details in V1.
 - A `pedido` is created/recognized only after ENVAX/seller processing confirms the commercial operation.
 - ENVAX owns its order concept independently of the ERP.
-- A future ERP identifier/reference may be attached to an ENVAX order, but the order must not depend on Wappsi to exist.
 - A seller may cancel a confirmed order; cancellation does not delete it.
 - V1 intentionally keeps the customer-visible state model small rather than exposing many operational states.
 
@@ -115,11 +121,12 @@ Canonical V1 roles:
 - The customer does not choose the seller manually in V1.
 - ENVAX assigns or routes requests internally.
 - Exact seller-assignment logic (automatic, manual, by territory, by customer, queue, or another rule) remains pending.
-- Seller can move a request into attention, confirm the commercial order, cancel a request, cancel an order, and complete the invoicing workflow.
+- Seller can move a request into attention, confirm the commercial order, cancel a request, cancel an order, and confirm that external invoicing has been completed.
 - Seller cannot erase commercial history through normal operations.
-- The browser extension supports the seller's invoicing workflow by transforming/copying confirmed WhatsApp/order information into the expected operational format.
-- The seller must review the customer/products/quantities and explicitly confirm before the system records a successful invoicing outcome.
-- The system must not mark an order `facturado` before invoicing is actually confirmed. If an ERP operation fails or remains uncertain, the order must stay pending/not-invoiced.
+- The browser extension supports the seller's external operational workflow by transforming/copying confirmed WhatsApp/order information into the format expected by the existing external system.
+- The extension does not make ENVAX an invoicing application and must not add electronic-invoice creation/editing/display capabilities to ENVAX.
+- The seller must review the customer/products/quantities and explicitly confirm before ENVAX records the `facturado` status.
+- ENVAX must not mark an order `facturado` before the seller confirms that the external invoicing step actually succeeded.
 - Manual processing is valid while ERP integration remains unverified.
 - Any future extension/integration must fail safely on ambiguous or unmatched data instead of guessing.
 
@@ -154,5 +161,5 @@ Landing, catalog, extension, docs, and Workers should remain cleanly separable s
 
 ## Security
 - Never expose ERP/API secrets in browser code.
-- Public repository must contain no confidential ERP documents, credentials, real customer data, or invoices.
+- Public repository must contain no confidential ERP documents, credentials, real customer data, invoices, invoice XML/PDF or tax documents.
 - Extension permissions should be minimal.
