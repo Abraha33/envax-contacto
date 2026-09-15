@@ -3,102 +3,188 @@
 Status: canonical product definition. Branch: `docs/product-definition-v1`.
 
 ## Product definition
-ENVAX is a B2B digital catalog, not an ecommerce store. Its purpose is to make the breadth of ENVAX's portfolio immediately visible, help a business discover relevant products, save recurring product interests in named favorites lists, and convert that interest into a human-assisted order flow.
 
-Core promise: **discover → explore → save → send order request → advisor**.
+ENVAX is a B2B digital catalog for a general distributor, not an ecommerce store. Its purpose is to make the breadth of ENVAX's portfolio immediately visible, help businesses discover relevant products, save recurring interests in named lists, and convert that interest into a human-assisted commercial flow.
+
+Core promise:
+
+`discover → explore → save → send request → seller → order`
 
 ## Experience principles
-- Extremely simple for the customer, even if the system is sophisticated behind the scenes.
-- The customer should quickly perceive variety, clarity, trust, quality, and easy access to advice.
-- No public cart, checkout, online payment, or marketplace behavior.
-- Prices are not part of the public catalog experience.
-- ENVAX branding has priority; partner brands are secondary.
-- Dense product grids are acceptable when they improve the perception of breadth without hurting recognition.
-- Do not burden the customer with traditional registration before they can explore and save interests.
 
-## Canonical entry journey
-1. Customer reaches the landing from QR, web, social, WhatsApp, or direct link.
-2. Customer provides only business name and business type.
-3. ENVAX may create an anonymous customer profile/session from this minimal entry.
-4. Customer enters the catalog immediately.
-5. Customer explores by category, brand, search, family, product, and variant.
+- Extremely simple for the customer even if the backend is sophisticated.
+- Catalog exploration is public and does not require login.
+- ENVAX must communicate variety, clarity, confidence and quality.
+- No public cart, checkout, online payment, marketplace, tax engine or automatic purchase.
+- Prices and stock are not part of V1.
+- ENVAX branding has priority; partner brands are secondary.
+- Dense product grids are acceptable when they improve perceived breadth without hurting recognition.
+- Do not collect business/customer data before it is needed.
+
+## Public journey
+
+A visitor may arrive from QR, web, social, WhatsApp, search or a direct link and immediately browse the catalog.
+
+Public capabilities include:
+- catalog cover/index;
+- category and brand exploration;
+- products and variants/presentations;
+- search and filters;
+- approved public attributes;
+- public product photography/media;
+- direct WhatsApp/email contact with the seller.
+
+Anonymous visitors do not have business data persisted in ENVAX.
+
+Optional favorites may exist only in local browser/device storage before login. This local state is convenience data and may be lost.
+
+## Customer identity
+
+Persistent business capabilities require an identified customer.
+
+V1 uses Supabase Auth with:
+- email as login identifier;
+- password;
+- standard Supabase session handling.
+
+MFA/2FA may be added later but is not required for V1.
+
+After login, the customer can use private capabilities inside the same ENVAX experience rather than entering a separate ecommerce product.
+
+## Commercial profile
+
+V1 keeps profile data minimal:
+- business name;
+- contact/person name;
+- email;
+- business type/segment.
+
+Do not collect extra business information without a demonstrated need.
 
 ## Favorites lists
-The canonical persistence concept is **named favorites lists**.
+
+Persistent favorites are multiple named lists owned by an authenticated customer.
 
 Examples:
 - `Halloween`
 - `Cumpleaños`
 - `Uso diario`
 
-A customer can create multiple lists, name them, add/remove products, reopen them later, keep adding products, and use a list as the basis for an order request.
+A customer can create multiple lists, name/rename them, add/remove concrete variants/presentations, reopen them later and use them as the basis for a formal request.
 
-Favorites are not a cart. They do not imply checkout, payment, totals, taxes, or automatic purchase.
+Favorites are not a cart and do not imply totals, prices, taxes, checkout or payment.
 
-## Order-request flow
-The customer can send a set of products to ENVAX as an order request.
+V1 does not include collaborative/shared editing or importing lists received through WhatsApp.
 
-`Favorites list / product interest → Enviar pedido → WhatsApp or Email → Solicitud enviada → Advisor`
+## Request and order flow
 
-Internally, the customer action first creates a **solicitud de pedido**. When the seller processes it through the approved internal method/extension, ENVAX automatically changes the status from **solicitud** to **pedido** across the system.
+A formal `solicitud` requires an authenticated customer.
 
-Customer-facing order states should remain simple. Exact final labels are still subject to UX definition, but the current conceptual path is:
+Direct WhatsApp/email contact is also valid but does not automatically create a formal ENVAX request.
 
-`Solicitud enviada → En atención → Pedido confirmado → Completado`
+Structured path:
 
-## Anonymous profile and Customer Portal — V1
-The initial experience supports an **anonymous profile/login concept** so the customer can save data without being asked for a full registration form.
+`Catalog → List/selection → Solicitud → Seller → Pedido`
 
-Initial requested data remains minimal:
-- business name;
-- business type.
+Customer-facing commercial lifecycle:
 
-Same-device persistence is part of the initial experience. Cross-device recovery/synchronization is required conceptually but the exact technical method is still **PENDING ARCHITECTURE DECISION**.
+`Solicitud enviada → En atención → Pedido confirmado → Facturado`
 
-The **Customer Portal is part of V1**, implemented as a separate authenticated/verified mode from the public catalog. Activating Portal mode may require the customer to provide or verify additional data.
+`FACTURADO` means only that the seller confirms the external invoicing/sale-formalization process succeeded outside ENVAX.
 
-Current approved customer-facing portal scope:
-- portal activation / identification;
-- portal access/login;
+ENVAX does not create, edit, store, display, validate or transmit electronic invoices.
+
+A request and its items preserve historical snapshots so later catalog/list changes do not rewrite commercial history.
+
+## Customer private capabilities
+
+Authenticated customers can access approved private functionality inside ENVAX, including:
+- persistent lists;
+- eligible promotions;
+- their own formal requests;
 - `Mis pedidos`;
-- order detail and status.
+- order detail/status.
 
-Do not expand the V1 portal into invoices, accounting, private prices, checkout, payments, or ecommerce without explicit approval.
+Historical orders that predate ENVAX account relationships are outside the initial V1.
 
-## Public product information
-Currently approved as public:
-- product name;
-- brand;
-- reference.
-
-Product photo is **not approved as public**. The visibility of other product fields remains pending and must not be guessed.
-
-## Promotions
-Promotions are an approved product direction but are not required to block completion of the core catalog + order-request + Customer Portal V1.
-
-The intended administrator capability is to choose recipients such as:
-- a specific customer;
-- a business type (for example, Panadería).
-
-A customer can select one or multiple promotions they are interested in and continue to an advisor through WhatsApp or email. Promotions do not become an automatic ecommerce purchase.
+Do not add invoices, accounting, private prices, payments or checkout without explicit approval.
 
 ## Seller operations
-Seller/advisor assignment is decided by the system.
 
-The internal browser extension remains a bridge while ERP/API integration is unresolved. The approved direction is that the seller uses the extension/manual-copy workflow and, when the operation is successfully processed, the system automatically updates the relevant record from `solicitud` to `pedido` everywhere.
+V1 has exactly one seller. `Asesor` is a customer-facing synonym; the technical role is `seller` / `vendedor`.
 
-## Primary conversion
-The main success event is a customer progressing from catalog exploration/favorites to a meaningful order request handled by an advisor.
+Every formal request/order goes to that seller. V1 has no assignment, territory, queue or load-balancing engine.
+
+Seller can:
+- view required customer/commercial context;
+- move a request to `EN_ATENCION`;
+- confirm a request as an order;
+- cancel requests/orders;
+- use the supported browser-extension workflow;
+- confirm `FACTURADO` after the external process actually succeeds;
+- view commercial history needed for the job.
+
+Seller cannot administer catalog, users/roles, promotions, system configuration or administrative analytics, and cannot erase commercial/audit history.
+
+## Administrator
+
+The administrator has full administrative and operational authority over ENVAX V1.
+
+Sensitive actions remain auditable, and commercial/audit history is not silently hard-deleted as a normal operation.
+
+## Public catalog information
+
+V1 public catalog baseline includes:
+- product name;
+- brand;
+- reference;
+- variant/presentation;
+- short description;
+- useful approved public attributes;
+- public product photography/media.
+
+Explicitly outside V1 public output:
+- price;
+- stock/guaranteed availability.
+
+## Promotions
+
+Promotions are private to authenticated/identified customers.
+
+Admin can target:
+- a specific customer;
+- a business type/segment;
+- related products/variants as needed.
+
+Promotions support commercial intent and handoff to WhatsApp/email; they do not become checkout or an automatic discount engine.
+
+## Analytics
+
+ENVAX measures the whole journey, including acquisition, QR/campaign source, navigation, search/filter use, product interactions, lists, WhatsApp/email clicks, formal requests, orders, device context, performance and errors.
+
+Analytics does not replace business entities and must not capture passwords, credentials, private messages or unnecessary sensitive information.
+
+Detailed event retention baseline is 12 months, subject to the final legal/privacy configuration before production.
 
 ## ERP integration status
-All Wappsi/ERP API capabilities remain **PENDING REAL VALIDATION**. Existing documentation is reference material only; do not treat products, prices, invoices, customers, orders, promotions, pagination, production URL, or write capabilities as production-confirmed until tested and approved.
+
+All Wappsi/ERP API capabilities remain **PENDING REAL VALIDATION**.
+
+Core ENVAX must work without Wappsi. Future integration, if validated, must sit behind an adapter and must not expose ERP secrets to browser code or the extension.
+
+## Primary conversion
+
+The main success event is a visitor/customer progressing from catalog discovery to a meaningful commercial request and, when processed by the seller, to a confirmed order.
 
 ## Future scope
+
 Potential later capabilities include:
-- promotions rollout and deeper promotion automation;
+- price visibility/rules after explicit product approval;
+- stock/availability after a trustworthy source exists;
+- stronger authentication/MFA;
 - direct ERP order integration;
 - PWA/browser notifications;
-- sharing products/lists;
-- richer customer-portal behavior only when explicitly approved.
+- sharing/copying lists;
+- richer customer capabilities after evidence from V1.
 
-These must not turn the public catalog into ecommerce or delay the first useful product version.
+None of these should turn ENVAX into public ecommerce or delay the core catalog/commercial flow.
