@@ -5,20 +5,23 @@
 ```text
 envax-contacto/
 ├── apps/
-│   ├── landing/
 │   ├── customer/
 │   └── admin/
-├── services/
-│   └── api/
 ├── extensions/
 │   └── seller/
-├── workers/
-│   └── qr/
 ├── packages/
 │   ├── contracts/
-│   ├── db/
 │   ├── ui/
 │   └── config/
+├── supabase/
+│   ├── config.toml
+│   ├── migrations/
+│   ├── seed.sql
+│   └── functions/
+│       └── api-v1/
+│           ├── index.ts
+│           ├── modules/
+│           └── shared/
 ├── tools/
 │   └── catalog-import/
 ├── tests/
@@ -27,6 +30,9 @@ envax-contacto/
 │   └── contract/
 ├── docs/
 │   └── construction-v1/
+├── qr-worker/          # existing, preserved
+├── index.html          # existing landing, preserved until migration gate
+├── demo.html
 ├── pnpm-workspace.yaml
 ├── package.json
 └── CLAUDE.md
@@ -34,112 +40,154 @@ envax-contacto/
 
 ## Responsibilities
 
-### `apps/landing`
-Current public landing. Keep deployable without customer/admin/API code. Migration must preserve current behavior before switching Cloudflare production root.
+### Existing root landing
+
+Production-sensitive public entry. Do not move it destructively during Foundation.
+
+A later migration may create `apps/landing`, but only after staging parity and rollback are proven.
 
 ### `apps/customer`
-Catalog, anonymous mode, favorites, pedido requests, portal mode, promotions UI.
+
+Owns customer-facing UI:
+- public catalog;
+- search/filter;
+- local anonymous convenience state if approved by UI implementation;
+- authenticated persistent lists;
+- formal request flow;
+- `Mis pedidos`;
+- eligible promotions.
+
+It never receives privileged DB/service-role credentials.
 
 ### `apps/admin`
-Internal operations and promotions admin.
 
-### `services/api`
-Only privileged application entry point to D1/R2/Queues and integrations.
+Internal UI for:
+- catalog management;
+- customers;
+- requests/orders;
+- promotions;
+- seller/internal members;
+- configuration;
+- analytics/audit views.
+
+Authorization still lives in API/database policies; hiding a screen is not security.
+
+### `supabase/functions/api-v1`
+
+Single logical REST API for V1.
 
 Suggested module layout:
 
 ```text
-services/api/src/
-├── app.ts
+supabase/functions/api-v1/
+├── index.ts
 ├── modules/
-│   ├── identity/
 │   ├── catalog/
-│   ├── favorites/
-│   ├── order-requests/
+│   ├── customers/
+│   ├── lists/
+│   ├── requests/
 │   ├── orders/
 │   ├── promotions/
-│   ├── portal/
+│   ├── seller/
 │   ├── admin/
-│   └── audit/
-├── integrations/
-├── middleware/
-└── worker.ts
+│   ├── analytics/
+│   ├── audit/
+│   └── extension/
+└── shared/
+    ├── auth/
+    ├── validation/
+    ├── errors/
+    ├── permissions/
+    ├── idempotency/
+    └── integrations/
 ```
 
-### `packages/contracts`
-Shared runtime schemas, request/response DTOs, enums, public error codes. Browser apps may import these; database implementation types may not leak into UI.
+### `supabase/migrations`
 
-### `packages/db`
-D1/Drizzle schema, repositories, migration helpers and test seeds. Only server-side code imports privileged database access.
+Versioned PostgreSQL schema, constraints, RLS policies, functions/RPC and indexes.
+
+No production schema changes by hand without a migration captured in Git.
+
+### `supabase/seed.sql`
+
+Development/test seed only. Never include real customer/ERP data.
+
+### `packages/contracts`
+
+Shared DTO/runtime schemas/enums/error codes that are safe for browser/server use.
+
+Do not leak privileged database implementation details or secrets.
 
 ### `packages/ui`
-ENVAX visual primitives once design is approved: typography, buttons, cards, layout, states. Avoid generic ecommerce component names/semantics.
+
+Approved visual primitives after frontend design is ready.
 
 ### `packages/config`
-Shared lint/TypeScript/test config only. Never store secrets.
+
+Shared lint/TypeScript/test configuration only. No secrets.
 
 ### `tools/catalog-import`
-Offline/CI import pipeline from canonical Product Master export to validated normalized catalog data.
+
+Deterministic catalog ingestion/validation tooling independent of Wappsi availability.
 
 ### `extensions/seller`
-Manifest V3 extension shell + parser core. Parser fixtures should be independent from browser APIs where possible.
 
-## Migration from current repository
+Manifest V3 extension plus deterministic parser/core where needed. It consumes ENVAX API only and never direct privileged database access.
 
-The repository currently has root landing files and `qr-worker/`. Do not move them destructively in the first code commit.
+### `qr-worker/`
 
-Safe migration:
-1. create new workspace structure alongside current production files;
-2. copy current landing into `apps/landing`;
-3. run visual/functional regression against current landing;
-4. deploy `apps/landing` to staging;
-5. update Cloudflare build/root configuration only after parity passes;
-6. keep old root files until production switch is verified;
-7. remove duplicates in a separate cleanup PR;
-8. do the same for `qr-worker/` only after QR routing and D1 analytics behavior are confirmed.
+Existing QR Worker remains independent until a dedicated migration/regression gate.
 
 ## Dependency rules
 
 Allowed:
 - apps → contracts/ui/config;
-- API → contracts/db/config;
+- Edge Function API → contracts;
 - extension → contracts + extension-local parser;
-- tools → contracts/db schema if required.
+- tools → contracts and safe generated database types if useful.
 
 Not allowed:
-- browser app → db;
-- extension → db;
+- browser app → service-role key;
+- extension → service-role key;
+- browser/extension → direct privileged SQL;
 - UI → server secrets;
-- catalog domain → Wappsi-specific DTOs;
-- order domain → Cloudflare-specific response objects.
+- core catalog/domain → Wappsi-specific DTOs;
+- order domain → vendor-specific infrastructure assumptions.
+
+## Supabase generated types
+
+When schema exists, generate database types from the canonical schema and treat generated code as build artifact/source according to the chosen workflow.
+
+Do not replace runtime authorization/RLS with TypeScript types.
 
 ## Branch strategy
 
-For a one-maintainer project use simple trunk-based development:
+For one maintainer:
 - `main` = production-ready;
-- documentation branches for major plans;
-- implementation branches such as `build/foundation-v1`, `feat/favorites`, `feat/order-request`;
-- PR required before merge to `main`;
-- CI must pass before merge;
-- do not create a permanent `develop` branch unless team size/workflow later requires it.
+- `docs/product-definition-v1` = current design/architecture documentation branch until merged;
+- `build/foundation-v1` = first implementation branch;
+- later short-lived feature branches;
+- CI must pass before production merges.
 
 ## Standard commands
 
 Root scripts should converge on:
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm test:e2e
 pnpm build
+pnpm supabase start
+pnpm supabase db reset
 ```
-
-Deployment commands stay app-specific, e.g. `pnpm --filter @envax/customer deploy:staging`.
 
 ## Environment separation
 
-Each deployable component has explicit local/staging/production config. D1/R2/Queue resources must not be shared between staging and production.
+Maintain distinct local, staging and production Supabase environments/data.
 
-Use `.dev.vars`/local secrets only for local development and never commit them.
+Never point normal development/staging jobs at production data.
+
+Secrets use environment/CI/Supabase secret mechanisms and are never committed.
