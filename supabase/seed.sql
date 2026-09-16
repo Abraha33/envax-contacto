@@ -1,0 +1,3 @@
+-- ENVAX V1 local seed file.
+-- Phase 1 Foundation intentionally contains no production/customer data.
+-- Catalog and role fixtures are introduced in later implementation phases.
