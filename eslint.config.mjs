@@ -8,6 +8,7 @@ export default tseslint.config(
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
+      'no-undef': 'off',
       '@typescript-eslint/no-explicit-any': 'error'
     }
   }
