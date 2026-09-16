@@ -6,13 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS'
 };
 
+function normalizePath(pathname: string): string {
+  return pathname.replace(/^\/functions\/v1\/api-v1/, '').replace(/^\/api-v1/, '');
+}
+
 Deno.serve((request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   const url = new URL(request.url);
-  const path = url.pathname.replace(/^\/functions\/v1\/api-v1/, '');
+  const path = normalizePath(url.pathname);
 
   if (request.method === 'GET' && (path === '/health' || path === '/api/v1/health')) {
     const response = healthResponse();
