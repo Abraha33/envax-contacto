@@ -8,6 +8,9 @@ on:
     paths-ignore:
       - 'docs/**'
 
+permissions:
+  contents: write
+
 jobs:
   foundation:
     runs-on: ubuntu-latest
@@ -31,11 +34,29 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Install dependencies
+      - name: Bootstrap lockfile when absent
+        if: ${{ hashFiles('pnpm-lock.yaml') == '' }}
         run: pnpm install --no-frozen-lockfile
+
+      - name: Commit generated lockfile
+        if: ${{ github.event_name == 'push' && hashFiles('pnpm-lock.yaml') != '' }}
+        run: |
+          if ! git diff --quiet -- pnpm-lock.yaml || [ -n "$(git ls-files --others --exclude-standard pnpm-lock.yaml)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add pnpm-lock.yaml
+            git commit -m "build: lock foundation dependencies"
+            git push
+          fi
+
+      - name: Install dependencies from lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
 
       - name: Typecheck
         run: pnpm typecheck
@@ -43,8 +64,23 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Playwright harness
+        run: pnpm test:e2e
+
       - name: Build
         run: pnpm build
+
+      - name: Verify customer and admin shells run
+        run: |
+          pnpm --dir apps/customer exec vite --host 127.0.0.1 --port 5173 > /tmp/envax-customer.log 2>&1 &
+          CUSTOMER_PID=$!
+          pnpm --dir apps/admin exec vite --host 127.0.0.1 --port 5174 > /tmp/envax-admin.log 2>&1 &
+          ADMIN_PID=$!
+          for i in {1..30}; do curl -fsS http://127.0.0.1:5173 >/dev/null && break || sleep 1; done
+          for i in {1..30}; do curl -fsS http://127.0.0.1:5174 >/dev/null && break || sleep 1; done
+          curl -fsS http://127.0.0.1:5173 >/dev/null
+          curl -fsS http://127.0.0.1:5174 >/dev/null
+          kill "$CUSTOMER_PID" "$ADMIN_PID"
 
       - name: Verify protected legacy files remain present
         run: |
@@ -52,8 +88,36 @@ jobs:
           test -f demo.html
           test -d qr-worker
 
+      - name: Start local Supabase
+        run: pnpm exec supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,logflare,vector,supavisor,mailpit
+
+      - name: Reset local database from repository state
+        run: pnpm exec supabase db reset --local
+
+      - name: Serve and verify api-v1 health
+        run: |
+          pnpm exec supabase functions serve api-v1 --no-verify-jwt > /tmp/envax-functions.log 2>&1 &
+          FUNCTION_PID=$!
+          for i in {1..45}; do
+            if curl -fsS http://127.0.0.1:54321/functions/v1/api-v1/health > /tmp/envax-health.json; then
+              break
+            fi
+            sleep 1
+          done
+          cat /tmp/envax-health.json
+          grep -q '"service":"envax-api"' /tmp/envax-health.json
+          grep -q '"status":"ok"' /tmp/envax-health.json
+          grep -q '"version":"v1"' /tmp/envax-health.json
+          kill "$FUNCTION_PID" || true
+
+      - name: Stop local Supabase
+        if: always()
+        run: pnpm exec supabase stop || true
+
       - name: Verify Supabase foundation files
         run: |
           test -f supabase/config.toml
           test -f supabase/seed.sql
           test -f supabase/functions/api-v1/index.ts
+          test -d supabase/functions/api-v1/modules
+          test -d supabase/functions/api-v1/shared
