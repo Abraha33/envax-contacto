@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+index.html
+demo.html
+qr-worker
+docs
+supabase/.branches
+supabase/.temp
+pnpm-lock.yaml
