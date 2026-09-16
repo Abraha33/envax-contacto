@@ -5,6 +5,7 @@ index.html
 demo.html
 qr-worker
 docs
+**/README.md
 supabase/.branches
 supabase/.temp
 pnpm-lock.yaml
