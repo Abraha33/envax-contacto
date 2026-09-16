@@ -1,0 +1,80 @@
+{
+  "sourceLabel": "demo-catalog-v1",
+  "brands": [
+    {
+      "id": "00000000-0000-4000-8000-000000000101",
+      "name": "Marca Demo",
+      "slug": "marca-demo"
+    }
+  ],
+  "categories": [
+    {
+      "id": "00000000-0000-4000-8000-000000000201",
+      "parentId": null,
+      "name": "Categoría Demo",
+      "slug": "categoria-demo",
+      "sortOrder": 10
+    }
+  ],
+  "segments": [
+    {
+      "id": "00000000-0000-4000-8000-000000000301",
+      "name": "Negocio Demo",
+      "slug": "negocio-demo",
+      "kind": "BUSINESS_TYPE"
+    }
+  ],
+  "attributes": [
+    {
+      "id": "00000000-0000-4000-8000-000000000401",
+      "name": "Material",
+      "code": "material",
+      "isPublic": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000402",
+      "name": "Capacidad",
+      "code": "capacidad",
+      "isPublic": true
+    }
+  ],
+  "products": [
+    {
+      "id": "00000000-0000-4000-8000-000000000501",
+      "brandId": "00000000-0000-4000-8000-000000000101",
+      "name": "Producto Demo",
+      "slug": "producto-demo",
+      "shortDescription": "Registro sintético para pruebas automatizadas; no representa un producto comercial real de ENVAX.",
+      "categoryIds": ["00000000-0000-4000-8000-000000000201"],
+      "segmentIds": ["00000000-0000-4000-8000-000000000301"],
+      "attributes": [
+        {
+          "attributeId": "00000000-0000-4000-8000-000000000401",
+          "value": "Material Demo"
+        }
+      ],
+      "variants": [
+        {
+          "id": "00000000-0000-4000-8000-000000000601",
+          "label": "Presentación Demo",
+          "reference": "DEMO-001",
+          "isDefault": true,
+          "attributes": [
+            {
+              "attributeId": "00000000-0000-4000-8000-000000000402",
+              "value": "100 unidades demo"
+            }
+          ]
+        }
+      ],
+      "media": [
+        {
+          "id": "00000000-0000-4000-8000-000000000701",
+          "storagePath": "demo/catalog/producto-demo.webp",
+          "altText": "Imagen demo no comercial",
+          "sortOrder": 0
+        }
+      ]
+    }
+  ]
+}
